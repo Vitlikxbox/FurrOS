@@ -7,6 +7,7 @@
 **Пушистый дистрибутив Linux на основе Arch. Good dogs only. 🐾**
 
 [![Статус](https://img.shields.io/badge/статус-в%20разработке-FFBE5A?style=for-the-badge)](#-статус)
+[![Discord](https://img.shields.io/badge/Discord-сообщество-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZA3GuBYKwG)
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
 [![Сайт](https://img.shields.io/badge/сайт-furros.xyz-7FF0F0?style=for-the-badge)](https://furros.xyz/)
 
@@ -26,7 +27,8 @@
 
 - ⭐ **Поставь звезду** репозиторию;
 - 👀 нажми **Watch → Custom → Releases** — GitHub пришлёт уведомление в день релиза;
-- ▶️ подпишись на [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — там девлоги и показ системы.
+- ▶️ подпишись на [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — там девлоги и показ системы;
+- 💬 заходи в [Discord](https://discord.gg/ZA3GuBYKwG) — новости первыми, помощь и чаты на русском и английском.
 
 ---
 
@@ -86,6 +88,7 @@
 
 - 🌐 Сайт: **[furros.xyz](https://furros.xyz/)**
 - ▶️ YouTube: **[@FurrOSLinux](https://www.youtube.com/@FurrOSLinux)**
+- 💬 Discord: **[discord.gg/ZA3GuBYKwG](https://discord.gg/ZA3GuBYKwG)**
 
 ## Арт и права
 
