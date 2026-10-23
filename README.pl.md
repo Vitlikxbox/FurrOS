@@ -14,7 +14,7 @@
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
 [![Strona](https://img.shields.io/badge/strona-furros.xyz-7FF0F0?style=for-the-badge)](https://furros.xyz/)
 
-17 pulpitów do wyboru · instalator z Taroyaddą · Szkoła Lapy · animowane tapety · bez śledzenia i telemetrii
+17 pulpitów do wyboru · instalator z Lapą · Szkoła Lapy · animowane tapety · bez śledzenia i telemetrii
 
 <img src="docs/hero-kde.webp" alt="Pulpit FurrOS z KDE Plasma" width="760" />
 
@@ -39,7 +39,7 @@ Chcesz dowiedzieć się pierwszy o premierze:
 ## Co jest w FurrOS
 
 - **17 pulpitów** — KDE, GNOME, COSMIC, Hyprland, Niri, Sway, i3 i inne. Wszystkie w jednym stylu FurrOS.
-- **Instalator z Taroyaddą** — graficzna instalacja w 4 językach (RU, EN, PL, ES). Taroyadda podpowiada na każdym kroku.
+- **Instalator z Lapą** — graficzna instalacja w 4 językach (RU, EN, PL, ES). Lapa podpowiada na każdym kroku.
 - **Szkoła Lapy** — wbudowany samouczek: 14 rozdziałów, quizy i terminal-piaskownica. Dla tych, którzy pierwszy raz są na Linuksie.
 - **Animowane tapety** — ruchome tapety prosto na pulpicie w KDE, Hyprland, Sway i Niri.
 - **Oparty na Archu** — rolling release, świeże wersje programów, tysiące pakietów z repozytoriów i AUR.
@@ -114,7 +114,7 @@ Każdy ma styl FurrOS od razu po instalacji.
 
 ## Grafika i prawa
 
-FurrOS to niekomercyjny projekt fanowski. Maskotka **Taroyadda**, **Lapa** (dalmatynka) i inne postacie, a także grafiki
+FurrOS to niekomercyjny projekt fanowski. **Lapa** (dalmatynka) i inne postacie, a także grafiki
 na zrzutach pulpitów i tapet należą do ich autorów i są pokazane wyłącznie poglądowo.
 
 🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Dziękujemy! 🐾

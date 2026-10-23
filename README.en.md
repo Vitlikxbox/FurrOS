@@ -14,7 +14,7 @@
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
 [![Website](https://img.shields.io/badge/website-furros.xyz-7FF0F0?style=for-the-badge)](https://furros.xyz/)
 
-17 desktops to choose from · an installer with Taroyadda · Lapa's School · live wallpapers · no tracking, no telemetry
+17 desktops to choose from · an installer with Lapa · Lapa's School · live wallpapers · no tracking, no telemetry
 
 <img src="docs/hero-kde.webp" alt="FurrOS desktop with KDE Plasma" width="760" />
 
@@ -39,7 +39,7 @@ Want to know first when it's out:
 ## What's in FurrOS
 
 - **17 desktops** — KDE, GNOME, COSMIC, Hyprland, Niri, Sway, i3 and more. All in one FurrOS style.
-- **Installer with Taroyadda** — graphical install in 4 languages (RU, EN, PL, ES). Taroyadda gives tips at every step.
+- **Installer with Lapa** — graphical install in 4 languages (RU, EN, PL, ES). Lapa gives tips at every step.
 - **Lapa's School** — built-in tutorial: 14 chapters, quizzes and a sandbox terminal. For anyone new to Linux.
 - **Live wallpapers** — animated wallpapers right on the desktop in KDE, Hyprland, Sway and Niri.
 - **Based on Arch** — rolling release, fresh software, thousands of packages from the repositories and the AUR.
@@ -114,7 +114,7 @@ Each one is styled as FurrOS right after installation.
 
 ## Art and rights
 
-FurrOS is a non-commercial fan project. The mascot **Taroyadda**, **Lapa** (a dalmatian) and the other characters, as well as the art
+FurrOS is a non-commercial fan project. **Lapa** (a dalmatian) and the other characters, as well as the art
 in the desktop and wallpaper screenshots, belong to their authors and are shown for illustration only.
 
 🎨 Artists whose art is used in FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Thank you! 🐾
