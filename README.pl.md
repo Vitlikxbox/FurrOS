@@ -113,6 +113,8 @@ FurrOS to niekomercyjny projekt fanowski. Maskotka **Lapa** (dalmatynka) należy
 Postacie i grafiki na zrzutach pulpitów i tapet należą do ich autorów i są pokazane
 wyłącznie poglądowo.
 
+🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Dziękujemy! 🐾
+
 ---
 
 <div align="center">

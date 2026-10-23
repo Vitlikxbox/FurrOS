@@ -113,6 +113,8 @@ FurrOS is a non-commercial fan project. The mascot **Lapa** (a dalmatian) belong
 Characters and art in the desktop and wallpaper screenshots belong to their authors and are shown
 for illustration only.
 
+🎨 Artists whose art is used in FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Thank you! 🐾
+
 ---
 
 <div align="center">

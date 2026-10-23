@@ -113,6 +113,8 @@ FurrOS es un proyecto de fans sin fines comerciales. La mascota **Lapa** (una d�
 Los personajes y el arte en las capturas de escritorios y fondos pertenecen a sus autores y se muestran
 solo a modo ilustrativo.
 
+🎨 Artistas cuyo arte se usa en FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. ¡Gracias! 🐾
+
 ---
 
 <div align="center">
