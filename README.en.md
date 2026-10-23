@@ -109,9 +109,8 @@ Each one is styled as FurrOS right after installation.
 
 ## Art and rights
 
-FurrOS is a non-commercial fan project. The mascot **Lapa** (a dalmatian) belongs to the project.
-Characters and art in the desktop and wallpaper screenshots belong to their authors and are shown
-for illustration only.
+FurrOS is a non-commercial fan project. **Lapa** (a dalmatian) and the other characters, as well as the art
+in the desktop and wallpaper screenshots, belong to their authors and are shown for illustration only.
 
 🎨 Artists whose art is used in FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Thank you! 🐾
 

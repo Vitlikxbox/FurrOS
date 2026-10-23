@@ -109,9 +109,8 @@ Każdy ma styl FurrOS od razu po instalacji.
 
 ## Grafika i prawa
 
-FurrOS to niekomercyjny projekt fanowski. Maskotka **Lapa** (dalmatynka) należy do projektu.
-Postacie i grafiki na zrzutach pulpitów i tapet należą do ich autorów i są pokazane
-wyłącznie poglądowo.
+FurrOS to niekomercyjny projekt fanowski. **Lapa** (dalmatynka) i inne postacie, a także grafiki
+na zrzutach pulpitów i tapet należą do ich autorów i są pokazane wyłącznie poglądowo.
 
 🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Dziękujemy! 🐾
 
