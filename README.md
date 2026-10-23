@@ -4,6 +4,8 @@
 
 # FurrOS
 
+**Русский** · [English](README.en.md) · [Polski](README.pl.md) · [Español](README.es.md)
+
 **Пушистый дистрибутив Linux на основе Arch. Good dogs only. 🐾**
 
 [![Статус](https://img.shields.io/badge/статус-в%20разработке-FFBE5A?style=for-the-badge)](#-статус)
