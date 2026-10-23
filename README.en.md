@@ -10,6 +10,7 @@
 
 [![Status](https://img.shields.io/badge/status-in%20development-FFBE5A?style=for-the-badge)](#%EF%B8%8F-status)
 [![Discord](https://img.shields.io/badge/Discord-community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZA3GuBYKwG)
+[![Telegram](https://img.shields.io/badge/Telegram-channel-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/FurrOS_Linux)
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
 [![Website](https://img.shields.io/badge/website-furros.xyz-7FF0F0?style=for-the-badge)](https://furros.xyz/)
 
@@ -30,6 +31,7 @@ Want to know first when it's out:
 - ⭐ **Star** the repository;
 - 👀 click **Watch → Custom → Releases** — GitHub will notify you on release day;
 - ▶️ subscribe to [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — devlogs and system showcases;
+- ✈️ follow the [Telegram channel](https://t.me/FurrOS_Linux) — news and the release announcement right in your feed;
 - 💬 join the [Discord](https://discord.gg/ZA3GuBYKwG) — news first, help, and chats in English and Russian.
 
 ---
@@ -103,6 +105,7 @@ Each one is styled as FurrOS right after installation.
 - 🌐 Website: **[furros.xyz](https://furros.xyz/)**
 - ▶️ YouTube: **[@FurrOSLinux](https://www.youtube.com/@FurrOSLinux)**
 - 💬 Discord: **[discord.gg/ZA3GuBYKwG](https://discord.gg/ZA3GuBYKwG)**
+- ✈️ Telegram: **[@FurrOS_Linux](https://t.me/FurrOS_Linux)**
 
 ## Art and rights
 
