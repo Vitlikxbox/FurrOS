@@ -11,7 +11,7 @@
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
 [![Сайт](https://img.shields.io/badge/сайт-furros.xyz-7FF0F0?style=for-the-badge)](https://furros.xyz/)
 
-18 рабочих столов на выбор · установщик с Лапой · Школа Лапы · живые обои · без слежки и телеметрии
+17 рабочих столов на выбор · установщик с Лапой · Школа Лапы · живые обои · без слежки и телеметрии
 
 <img src="docs/hero-kde.webp" alt="Рабочий стол FurrOS с KDE Plasma" width="760" />
 
@@ -34,22 +34,34 @@
 
 ## Что будет в FurrOS
 
-- **18 рабочих столов** — KDE, GNOME, COSMIC, Hyprland, Niri, Sway, i3 и другие. Все в едином стиле FurrOS.
+- **17 рабочих столов** — KDE, GNOME, COSMIC, Hyprland, Niri, Sway, i3 и другие. Все в едином стиле FurrOS.
 - **Установщик с Лапой** — графическая установка на 4 языках (RU, EN, PL, ES). Лапа подсказывает на каждом шаге.
 - **Школа Лапы** — встроенное обучение: 14 глав, тесты и терминал-песочница. Для тех, кто первый раз на Linux.
 - **Живые обои** — анимированные обои на рабочем столе в KDE, Hyprland, Sway и Niri.
 - **На основе Arch** — rolling-release, свежие версии программ, тысячи пакетов из репозиториев и AUR.
 - **Бесплатно и открыто** — никакой слежки и телеметрии.
 
-## 18 рабочих столов
+## 17 рабочих столов
 
 | Классические | Плиточные | Без графики |
 |---|---|---|
-| KDE Plasma, GNOME, COSMIC, Cinnamon, Xfce, MATE, Budgie, LXQt, Deepin, Enlightenment | Hyprland, Niri, Sway, i3, bspwm, Awesome, Qtile | Только консоль |
+| KDE Plasma, GNOME, COSMIC, Cinnamon, Xfce, MATE, Budgie, LXQt, Deepin | Hyprland, Niri, Sway, i3, bspwm, Awesome, Qtile | Только консоль |
 
 Выбор — один клик при установке, оформление везде в стиле FurrOS.
 
 ## Скриншоты
+
+### Все рабочие столы
+Каждый оформлен в стиле FurrOS сразу после установки.
+
+| | | |
+|:-:|:-:|:-:|
+| <img src="docs/desktops/kde.webp" alt="KDE Plasma" width="260"><br>**KDE Plasma** | <img src="docs/desktops/gnome.webp" alt="GNOME" width="260"><br>**GNOME** | <img src="docs/desktops/cosmic.webp" alt="COSMIC" width="260"><br>**COSMIC** |
+| <img src="docs/desktops/cinnamon.webp" alt="Cinnamon" width="260"><br>**Cinnamon** | <img src="docs/desktops/xfce.webp" alt="Xfce" width="260"><br>**Xfce** | <img src="docs/desktops/mate.webp" alt="MATE" width="260"><br>**MATE** |
+| <img src="docs/desktops/budgie.webp" alt="Budgie" width="260"><br>**Budgie** | <img src="docs/desktops/lxqt.webp" alt="LXQt" width="260"><br>**LXQt** | <img src="docs/desktops/deepin.webp" alt="Deepin" width="260"><br>**Deepin** |
+| <img src="docs/desktops/hyprland.webp" alt="Hyprland" width="260"><br>**Hyprland** | <img src="docs/desktops/niri.webp" alt="Niri" width="260"><br>**Niri** | <img src="docs/desktops/sway.webp" alt="Sway" width="260"><br>**Sway** |
+| <img src="docs/desktops/i3.webp" alt="i3" width="260"><br>**i3** | <img src="docs/desktops/bspwm.webp" alt="bspwm" width="260"><br>**bspwm** | <img src="docs/desktops/awesome.webp" alt="Awesome" width="260"><br>**Awesome** |
+| <img src="docs/desktops/qtile.webp" alt="Qtile" width="260"><br>**Qtile** | <img src="docs/desktops/console.webp" alt="Только консоль" width="260"><br>**Только консоль** |
 
 ### Установщик
 <p>
