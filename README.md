@@ -100,6 +100,11 @@
 <img src="docs/wp-static.webp" width="32%" />
 </p>
 
+### Живые обои
+12 живых обоев: на KDE, Hyprland, Sway и Niri они двигаются прямо на рабочем столе.
+
+<img src="docs/wp-animated.webp" alt="Живые обои" width="100%" />
+
 ## Ссылки
 
 - 🌐 Сайт: **[furros.xyz](https://furros.xyz/)**

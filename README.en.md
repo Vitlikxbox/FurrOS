@@ -100,6 +100,11 @@ Each one is styled as FurrOS right after installation.
 <img src="docs/wp-static.webp" width="32%" />
 </p>
 
+### Live wallpapers
+12 live wallpapers: on KDE, Hyprland, Sway and Niri they move right on the desktop.
+
+<img src="docs/wp-animated.webp" alt="Live wallpapers" width="100%" />
+
 ## Links
 
 - 🌐 Website: **[furros.xyz](https://furros.xyz/)**

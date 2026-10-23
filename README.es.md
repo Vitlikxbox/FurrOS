@@ -100,6 +100,11 @@ Cada uno tiene el estilo FurrOS justo después de instalar.
 <img src="docs/wp-static.webp" width="32%" />
 </p>
 
+### Fondos animados
+12 fondos animados: en KDE, Hyprland, Sway y Niri se mueven directamente en el escritorio.
+
+<img src="docs/wp-animated.webp" alt="Fondos animados" width="100%" />
+
 ## Enlaces
 
 - 🌐 Web: **[furros.xyz](https://furros.xyz/)**

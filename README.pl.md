@@ -100,6 +100,11 @@ Każdy ma styl FurrOS od razu po instalacji.
 <img src="docs/wp-static.webp" width="32%" />
 </p>
 
+### Animowane tapety
+12 animowanych tapet: w KDE, Hyprland, Sway i Niri ruszają się prosto na pulpicie.
+
+<img src="docs/wp-animated.webp" alt="Animowane tapety" width="100%" />
+
 ## Linki
 
 - 🌐 Strona: **[furros.xyz](https://furros.xyz/)**
