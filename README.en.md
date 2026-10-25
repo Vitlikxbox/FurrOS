@@ -112,6 +112,16 @@ Each one is styled as FurrOS right after installation.
 - 💬 Discord: **[discord.gg/ZA3GuBYKwG](https://discord.gg/ZA3GuBYKwG)**
 - ✈️ Telegram: **[@FurrOS_Linux](https://t.me/FurrOS_Linux)**
 
+## License
+
+FurrOS code is released under the **[GNU GPL v3.0](LICENSE)**: you are free to use, study, change and share it,
+and any modified versions must stay open under GPL-3.0 too.
+
+The license **does not cover**:
+- the **FurrOS** name and the paw logo — don't use them for your own projects without permission;
+- character art and artists' work (see below) — all rights belong to their authors;
+- Arch Linux packages and other software in the image — each has its own license. Arch Linux is a trademark of its owners.
+
 ## Art and rights
 
 FurrOS is a non-commercial fan project. **Lapa** (a dalmatian) and the other characters, as well as the art

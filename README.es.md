@@ -112,6 +112,16 @@ Cada uno tiene el estilo FurrOS justo después de instalar.
 - 💬 Discord: **[discord.gg/ZA3GuBYKwG](https://discord.gg/ZA3GuBYKwG)**
 - ✈️ Telegram: **[@FurrOS_Linux](https://t.me/FurrOS_Linux)**
 
+## Licencia
+
+El código de FurrOS se publica bajo la **[GNU GPL v3.0](LICENSE)**: puedes usarlo, estudiarlo, modificarlo y
+compartirlo libremente, y cualquier versión modificada también debe seguir siendo abierta bajo GPL-3.0.
+
+La licencia **no cubre**:
+- el nombre **FurrOS** ni el logo de la patita — no los uses en tus propios proyectos sin permiso;
+- el arte de los personajes y de los artistas (ver abajo) — los derechos son de sus autores;
+- los paquetes de Arch Linux y otros programas de la imagen — cada uno tiene su propia licencia. Arch Linux es una marca de sus propietarios.
+
 ## Arte y derechos
 
 FurrOS es un proyecto de fans sin fines comerciales. **Lapa** (una dálmata) y los demás personajes, así como el arte
