@@ -133,7 +133,7 @@ La licencia **no cubre**:
 FurrOS es un proyecto de fans sin fines comerciales. **Lapa** (una dálmata) y los demás personajes, así como el arte
 en las capturas de escritorios y fondos, pertenecen a sus autores y se muestran solo a modo ilustrativo.
 
-🎨 Artistas cuyo arte se usa en FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. ¡Gracias! 🐾
+🎨 Artistas cuyo arte se usa en FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**, **dentola69**, **cobac228_16982**. ¡Gracias! 🐾
 
 ---
 

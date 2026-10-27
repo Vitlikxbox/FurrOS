@@ -133,7 +133,7 @@ Licencja **nie obejmuje**:
 FurrOS to niekomercyjny projekt fanowski. **Lapa** (dalmatynka) i inne postacie, a także grafiki
 na zrzutach pulpitów i tapet należą do ich autorów i są pokazane wyłącznie poglądowo.
 
-🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**. Dziękujemy! 🐾
+🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**, **dentola69**, **cobac228_16982**. Dziękujemy! 🐾
 
 ---
 
