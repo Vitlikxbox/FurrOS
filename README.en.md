@@ -42,6 +42,12 @@ Want to know first when it's out:
 - **Installer with Lapa** — graphical install in 4 languages (RU, EN, PL, ES). Lapa gives tips at every step.
 - **Lapa's School** — built-in tutorial: 14 chapters, quizzes and a sandbox terminal. For anyone new to Linux.
 - **Live wallpapers** — animated wallpapers right on the desktop in KDE, Hyprland, Sway and Niri.
+- **System snapshots** — if an update breaks something, pick the "before" snapshot in the boot menu and you're back.
+- **Drivers on their own** — FurrOS finds your graphics card (NVIDIA, AMD, Intel) and installs the right driver.
+- **Updates in one command** — `furros-update` updates packages, the AUR and Flatpak, and reminds you when it's time.
+- **Made for gaming** — Steam, Proton, GameMode, MangoHud, gamescope and tweaks for smooth frames.
+- **Safe out of the box** — the firewall is on from the start, and the image is signed and checked with SHA-256.
+- **Accessibility** — the Orca screen reader already works in the installer.
 - **Based on Arch** — rolling release, fresh software, thousands of packages from the repositories and the AUR.
 - **Free and open** — no tracking, no telemetry.
 

@@ -42,6 +42,12 @@ Chcesz dowiedzieć się pierwszy o premierze:
 - **Instalator z Lapą** — graficzna instalacja w 4 językach (RU, EN, PL, ES). Lapa podpowiada na każdym kroku.
 - **Szkoła Lapy** — wbudowany samouczek: 14 rozdziałów, quizy i terminal-piaskownica. Dla tych, którzy pierwszy raz są na Linuksie.
 - **Animowane tapety** — ruchome tapety prosto na pulpicie w KDE, Hyprland, Sway i Niri.
+- **Migawki systemu** — jeśli aktualizacja coś zepsuje, wybierasz w menu rozruchu migawkę „sprzed” i wracasz.
+- **Sterowniki same** — FurrOS rozpoznaje kartę graficzną (NVIDIA, AMD, Intel) i instaluje właściwy sterownik.
+- **Aktualizacje jednym poleceniem** — `furros-update` aktualizuje pakiety, AUR i Flatpak i sam przypomina, kiedy pora.
+- **Do gier** — Steam, Proton, GameMode, MangoHud, gamescope i ustawienia dla płynnego obrazu.
+- **Bezpieczny od razu** — zapora jest włączona od początku, a obraz jest podpisany i sprawdzany przez SHA-256.
+- **Ułatwienia dostępu** — czytnik ekranu Orca działa już w instalatorze.
 - **Oparty na Archu** — rolling release, świeże wersje programów, tysiące pakietów z repozytoriów i AUR.
 - **Darmowy i otwarty** — bez śledzenia i telemetrii.
 
