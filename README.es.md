@@ -42,6 +42,8 @@ Para enterarte el primero cuando salga:
 - **Instalador con Lapa** — instalación gráfica en 4 idiomas (RU, EN, PL, ES). Lapa te ayuda en cada paso.
 - **La Escuela de Lapa** — tutorial integrado: 14 capítulos, cuestionarios y un terminal sandbox. Para quien usa Linux por primera vez.
 - **Fondos animados** — fondos en movimiento directamente en el escritorio en KDE, Hyprland, Sway y Niri.
+- **Junto a Windows** — arranque dual: FurrOS se instala en el espacio libre y Windows sigue en el menú de arranque. El instalador avisa antes sobre BitLocker.
+- **Gráficos seguros** — ¿pantalla negra con NVIDIA? El menú de arranque tiene la opción «gráficos seguros (nomodeset)».
 - **Instantáneas del sistema** — si una actualización rompe algo, eliges en el menú de arranque la instantánea «de antes» y vuelves atrás.
 - **Controladores solos** — FurrOS detecta tu tarjeta gráfica (NVIDIA, AMD, Intel) e instala el controlador adecuado.
 - **Actualizaciones con un comando** — `furros-update` actualiza paquetes, AUR y Flatpak, y te avisa cuando toca.

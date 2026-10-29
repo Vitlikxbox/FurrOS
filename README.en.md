@@ -42,6 +42,8 @@ Want to know first when it's out:
 - **Installer with Lapa** — graphical install in 4 languages (RU, EN, PL, ES). Lapa gives tips at every step.
 - **Lapa's School** — built-in tutorial: 14 chapters, quizzes and a sandbox terminal. For anyone new to Linux.
 - **Live wallpapers** — animated wallpapers right on the desktop in KDE, Hyprland, Sway and Niri.
+- **Next to Windows** — dual boot: FurrOS installs into free space and Windows stays in the boot menu. The installer warns you about BitLocker first.
+- **Safe graphics** — black screen on NVIDIA? The boot menu has a "safe graphics (nomodeset)" entry.
 - **System snapshots** — if an update breaks something, pick the "before" snapshot in the boot menu and you're back.
 - **Drivers on their own** — FurrOS finds your graphics card (NVIDIA, AMD, Intel) and installs the right driver.
 - **Updates in one command** — `furros-update` updates packages, the AUR and Flatpak, and reminds you when it's time.
