@@ -128,7 +128,7 @@ zmieniać i rozpowszechniać, a wszystkie zmienione wersje też muszą pozostać
 
 Licencja **nie obejmuje**:
 - nazwy **FurrOS** i logo z łapką — nie wolno ich używać we własnych projektach bez zgody;
-- grafik postaci i prac artystów (patrz niżej) — prawa należą do autorów;
+- grafik postaci i prac artystów (patrz niżej) — prawa należą do autorów. Wyjątek to Pixie, Danyok i grafiki FurrOS: są na licencji **[CC BY-NC-SA 4.0](LICENSE-ART.md)**;
 - pakietów Arch Linux i innych programów w obrazie — każdy ma własną licencję. Arch Linux jest znakiem towarowym jego właścicieli.
 
 ## Grafika i prawa

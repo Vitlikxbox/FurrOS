@@ -128,7 +128,7 @@ and any modified versions must stay open under GPL-3.0 too.
 
 The license **does not cover**:
 - the **FurrOS** name and the paw logo — don't use them for your own projects without permission;
-- character art and artists' work (see below) — all rights belong to their authors;
+- character art and artists' work (see below) — all rights belong to their authors. The exception is Pixie, Danyok and the FurrOS artwork: they are under **[CC BY-NC-SA 4.0](LICENSE-ART.md)**;
 - Arch Linux packages and other software in the image — each has its own license. Arch Linux is a trademark of its owners.
 
 ## Art and rights

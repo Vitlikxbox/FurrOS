@@ -128,7 +128,7 @@ compartirlo libremente, y cualquier versión modificada también debe seguir sie
 
 La licencia **no cubre**:
 - el nombre **FurrOS** ni el logo de la patita — no los uses en tus propios proyectos sin permiso;
-- el arte de los personajes y de los artistas (ver abajo) — los derechos son de sus autores;
+- el arte de los personajes y de los artistas (ver abajo) — los derechos son de sus autores. La excepción son Pixie, Danyok y el arte de FurrOS: están bajo **[CC BY-NC-SA 4.0](LICENSE-ART.md)**;
 - los paquetes de Arch Linux y otros programas de la imagen — cada uno tiene su propia licencia. Arch Linux es una marca de sus propietarios.
 
 ## Arte y derechos
