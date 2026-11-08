@@ -33,7 +33,8 @@
 - ▶️ подпишись на [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — там девлоги и показ системы;
 - ✈️ подпишись на [Telegram-канал](https://t.me/FurrOS_Linux) — новости и анонс релиза прямо в ленте;
 - 💬 заходи в [Discord](https://discord.gg/ZA3GuBYKwG) — новости первыми, помощь и чаты на русском и английском.
-- 💜 поддержи проект на [DALink](https://dalink.to/furros) — донаты по желанию, идут на сервер, домен и художников.
+- 💖 подписка на [Boosty](https://boosty.to/furros) — ранние тестовые сборки, закрытый канал в Discord и твоё имя в системе;
+- 💜 разовый донат на [DALink](https://dalink.to/furros) — по желанию, идёт на сервер, домен и художников.
 
 ---
 

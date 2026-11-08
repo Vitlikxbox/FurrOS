@@ -33,7 +33,8 @@ Want to know first when it's out:
 - ▶️ subscribe to [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — devlogs and system showcases;
 - ✈️ follow the [Telegram channel](https://t.me/FurrOS_Linux) — news and the release announcement right in your feed;
 - 💬 join the [Discord](https://discord.gg/ZA3GuBYKwG) — news first, help, and chats in English and Russian.
-- 💜 support the project on [DALink](https://dalink.to/furros) — donations are optional and go to the server, domain and artists.
+- 💖 subscribe on [Boosty](https://boosty.to/furros) — early test builds, a private Discord channel and your name in the system;
+- 💜 a one-time donation on [DALink](https://dalink.to/furros) — optional, it goes to the server, domain and artists.
 
 ---
 
