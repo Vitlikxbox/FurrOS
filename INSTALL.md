@@ -16,7 +16,7 @@
 
 ## 1. Скачай образ
 
-**Проще всего — FurrOS Downloader**: на странице релиза файл `FurrOS-Downloader.exe` для Windows или `FurrOS-Downloader-x86_64.AppImage` для Linux (сделай его исполняемым: `chmod +x FurrOS-Downloader-x86_64.AppImage`). Он сам скачает образ, проверит его и запишет на флешку. Тогда сразу переходи к шагу 3.
+**Проще всего — FurrOS Downloader**: на странице релиза файл `FurrOS-Downloader.exe` для Windows или `FurrOS-Downloader-x86_64.AppImage` для Linux (сделай его исполняемым: `chmod +x FurrOS-Downloader-x86_64.AppImage`). Он сам скачает и проверит образ. На Linux он ещё и запишет флешку — тогда сразу переходи к шагу 3; на Windows флешку запиши по шагу 2.
 
 **Вручную:** на странице релиза скачай **все 6 частей** (`FurrOS-1.0-x86_64.iso.part1` … `part6`) и файл `FurrOS-1.0-x86_64.iso.sha256` в одну папку и склей их:
 
@@ -36,7 +36,7 @@
 
 ## 2. Запиши флешку
 
-Подойдёт любая из программ: **FurrOS Downloader**, **Rufus** (когда спросит — выбери режим **DD**), **Ventoy** или **balenaEtcher**. Всё, что было на флешке, сотрётся.
+Подойдёт любая из программ: **FurrOS Downloader** (только на Linux), **Rufus** (когда спросит — выбери режим **DD**), **Ventoy** или **balenaEtcher**. Всё, что было на флешке, сотрётся.
 
 ## 3. Подготовь компьютер
 
@@ -97,7 +97,7 @@
 
 ## 1. Download the image
 
-**Easiest: FurrOS Downloader**: on the release page, `FurrOS-Downloader.exe` for Windows or `FurrOS-Downloader-x86_64.AppImage` for Linux (make it executable: `chmod +x FurrOS-Downloader-x86_64.AppImage`). It downloads the image, verifies it and writes the USB stick for you. Then skip to step 3.
+**Easiest: FurrOS Downloader**: on the release page, `FurrOS-Downloader.exe` for Windows or `FurrOS-Downloader-x86_64.AppImage` for Linux (make it executable: `chmod +x FurrOS-Downloader-x86_64.AppImage`). It downloads and verifies the image. On Linux it also writes the USB stick — then skip to step 3; on Windows write the stick as in step 2.
 
 **By hand:** on the release page download **all 6 parts** (`FurrOS-1.0-x86_64.iso.part1` … `part6`) and `FurrOS-1.0-x86_64.iso.sha256` into one folder and join them:
 
@@ -117,7 +117,7 @@ Check that the image is intact: the number must match the one in the `.sha256` f
 
 ## 2. Write the USB stick
 
-Any of these works: **FurrOS Downloader**, **Rufus** (pick **DD** mode when asked), **Ventoy** or **balenaEtcher**. Everything on the stick is erased.
+Any of these works: **FurrOS Downloader** (Linux only), **Rufus** (pick **DD** mode when asked), **Ventoy** or **balenaEtcher**. Everything on the stick is erased.
 
 ## 3. Prepare the computer
 
