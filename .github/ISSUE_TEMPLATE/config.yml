@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "💬 Discord — помощь и вопросы / help and questions"
+    url: https://discord.gg/ZA3GuBYKwG
+    about: "Лапа и команда отвечают там быстрее всего / Lapa and the team answer fastest there"
+  - name: "📖 Инструкция по установке / Installation guide"
+    url: https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md
+    about: "Как скачать, записать флешку и установить FurrOS / How to download, write the USB stick and install FurrOS"

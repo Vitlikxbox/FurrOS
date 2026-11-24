@@ -1,0 +1,56 @@
+name: "🐛 Ошибка / Bug report"
+description: "Что-то не работает в FurrOS / Something in FurrOS doesn't work"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо, что помогаешь сделать FurrOS лучше! 🐾 Быстрый ответ можно получить и в [Discord](https://discord.gg/ZA3GuBYKwG) — там отвечают Лапа и команда.
+        Thanks for helping make FurrOS better! 🐾 For a quick answer you can also ask on [Discord](https://discord.gg/ZA3GuBYKwG).
+  - type: input
+    id: build
+    attributes:
+      label: "Сборка / Build"
+      description: "Первые 8 символов SHA256 образа или название релиза, например v1.0-beta · 01ca1438 / The first 8 characters of the image SHA256 or the release name"
+      placeholder: "v1.0-beta · 01ca1438"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: "Где случилось? / Where did it happen?"
+      options:
+        - "Установщик / Installer"
+        - "Загрузка (FurrBoot, GRUB) / Boot"
+        - "Рабочий стол / Desktop"
+        - "Школа Лапы / Lapa's School"
+        - "Обновление (furros-update) / Update"
+        - "Драйверы / Drivers"
+        - "FurrOS Downloader"
+        - "Другое / Other"
+    validations:
+      required: true
+  - type: input
+    id: desktop
+    attributes:
+      label: "Рабочий стол / Desktop"
+      placeholder: "KDE Plasma, Hyprland, Xfce…"
+  - type: textarea
+    id: what
+    attributes:
+      label: "Что произошло? / What happened?"
+      description: "Что ты делал(а), что ожидал(а) увидеть и что получилось / What you did, what you expected and what you got"
+    validations:
+      required: true
+  - type: textarea
+    id: hw
+    attributes:
+      label: "Компьютер / Hardware"
+      description: "Видеокарта, процессор, ноутбук или ПК, виртуальная машина? Вывод `inxi -Fz` очень помогает / GPU, CPU, laptop or PC, virtual machine? `inxi -Fz` output helps a lot"
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Логи / Logs"
+      description: "Установщик: /tmp/furros-install.log · система: `journalctl -b -p 3`"
+      render: text
