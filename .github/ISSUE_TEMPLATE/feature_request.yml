@@ -1,0 +1,32 @@
+name: "💡 Идея / Feature request"
+description: "Предложи, что добавить или улучшить в FurrOS / Suggest something to add or improve in FurrOS"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Идеи можно обсудить и в [Discord](https://discord.gg/ZA3GuBYKwG) 🐾 / Ideas are also welcome on [Discord](https://discord.gg/ZA3GuBYKwG) 🐾
+  - type: textarea
+    id: idea
+    attributes:
+      label: "Что хочется? / What would you like?"
+      description: "Опиши идею и зачем она нужна / Describe the idea and why it's useful"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Где? / Where?"
+      options:
+        - "Установщик / Installer"
+        - "Рабочие столы и оформление / Desktops and theming"
+        - "Школа Лапы / Lapa's School"
+        - "Обои / Wallpapers"
+        - "Загрузка / Boot"
+        - "FurrOS Downloader"
+        - "Другое / Other"
+  - type: textarea
+    id: more
+    attributes:
+      label: "Что ещё стоит знать? / Anything else?"
+      description: "Скриншоты, примеры из других систем / Screenshots, examples from other systems"
