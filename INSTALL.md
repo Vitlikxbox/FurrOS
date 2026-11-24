@@ -16,7 +16,7 @@
 
 ## 1. Скачай образ
 
-**Проще всего — FurrOS Downloader** (релиз «FurrOS Downloader» на GitHub). Он сам скачает образ, проверит его и запишет на флешку. Тогда сразу переходи к шагу 3.
+**Проще всего — FurrOS Downloader**: на странице релиза файл `FurrOS-Downloader.exe` для Windows или `FurrOS-Downloader-x86_64.AppImage` для Linux (сделай его исполняемым: `chmod +x FurrOS-Downloader-x86_64.AppImage`). Он сам скачает образ, проверит его и запишет на флешку. Тогда сразу переходи к шагу 3.
 
 **Вручную:** на странице релиза скачай **все 6 частей** (`FurrOS-1.0-x86_64.iso.part1` … `part6`) и файл `FurrOS-1.0-x86_64.iso.sha256` в одну папку и склей их:
 
@@ -97,7 +97,7 @@
 
 ## 1. Download the image
 
-**Easiest: FurrOS Downloader** (the «FurrOS Downloader» release on GitHub). It downloads the image, verifies it and writes the USB stick for you. Then skip to step 3.
+**Easiest: FurrOS Downloader**: on the release page, `FurrOS-Downloader.exe` for Windows or `FurrOS-Downloader-x86_64.AppImage` for Linux (make it executable: `chmod +x FurrOS-Downloader-x86_64.AppImage`). It downloads the image, verifies it and writes the USB stick for you. Then skip to step 3.
 
 **By hand:** on the release page download **all 6 parts** (`FurrOS-1.0-x86_64.iso.part1` … `part6`) and `FurrOS-1.0-x86_64.iso.sha256` into one folder and join them:
 
