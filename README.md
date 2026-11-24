@@ -8,7 +8,7 @@
 
 **Пушистый дистрибутив Linux на основе Arch. Good dogs only. 🐾**
 
-[![Статус](https://img.shields.io/badge/статус-в%20разработке-FFBE5A?style=for-the-badge)](#-статус)
+[![Статус](https://img.shields.io/badge/статус-бета%201.0-7FF0F0?style=for-the-badge)](#-статус)
 [![Discord](https://img.shields.io/badge/Discord-сообщество-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZA3GuBYKwG)
 [![Telegram](https://img.shields.io/badge/Telegram-канал-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/FurrOS_Linux)
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
@@ -24,9 +24,13 @@
 
 ## ⚠️ Статус
 
-**FurrOS ещё в разработке — ISO пока не выпущен.** Сборка меняется, поэтому образа, хэша и ссылки на загрузку здесь нет.
+**Вышла бета FurrOS 1.0** — [скачать в релизах](https://github.com/Vitlikxbox/FurrOS/releases/latest). Систему уже проверили тестеры на настоящих компьютерах, но это бета: перед установкой сохрани важные файлы. Проще всего качать программой **FurrOS Downloader** — она сама скачает, проверит и запишет флешку.
 
-Хочешь узнать о выходе первым:
+📖 **[Инструкция по установке](https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md)** — по шагам, с подготовкой Windows.
+
+Нашёл ошибку или нужна помощь — заходи в [Discord](https://discord.gg/ZA3GuBYKwG): там отвечают команда и Лапа.
+
+Следить за новостями:
 
 - ⭐ **Поставь звезду** репозиторию;
 - 👀 нажми **Watch → Custom → Releases** — GitHub пришлёт уведомление в день релиза;

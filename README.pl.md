@@ -8,7 +8,7 @@
 
 **Puszysta dystrybucja Linuksa oparta na Archu. Good dogs only. 🐾**
 
-[![Status](https://img.shields.io/badge/status-w%20budowie-FFBE5A?style=for-the-badge)](#%EF%B8%8F-status)
+[![Status](https://img.shields.io/badge/status-beta%201.0-7FF0F0?style=for-the-badge)](#%EF%B8%8F-status)
 [![Discord](https://img.shields.io/badge/Discord-społeczność-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/ZA3GuBYKwG)
 [![Telegram](https://img.shields.io/badge/Telegram-kanał-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/FurrOS_Linux)
 [![YouTube](https://img.shields.io/badge/YouTube-@FurrOSLinux-E23A44?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@FurrOSLinux)
@@ -24,9 +24,13 @@
 
 ## ⚠️ Status
 
-**FurrOS jest wciąż w budowie — ISO nie zostało jeszcze wydane.** Wersja ciągle się zmienia, więc nie ma tu obrazu, sumy kontrolnej ani linku do pobrania.
+**Wyszła beta FurrOS 1.0** — [pobierz z wydań](https://github.com/Vitlikxbox/FurrOS/releases/latest). Testerzy sprawdzili ją już na prawdziwych komputerach, ale to beta: przed instalacją zrób kopię ważnych plików. Najprościej pobrać ją programem **FurrOS Downloader** — sam pobierze, sprawdzi i nagra pendrive.
 
-Chcesz dowiedzieć się pierwszy o premierze:
+📖 **[Instrukcja instalacji](https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md#-how-to-install-furros-10-beta)** (po angielsku i rosyjsku) — krok po kroku, z przygotowaniem Windows.
+
+Znalazłeś błąd albo potrzebujesz pomocy? Wpadnij na [Discord](https://discord.gg/ZA3GuBYKwG): odpowiada tam zespół i Łapa.
+
+Bądź na bieżąco:
 
 - ⭐ **daj gwiazdkę** repozytorium;
 - 👀 kliknij **Watch → Custom → Releases** — GitHub powiadomi Cię w dniu wydania;
