@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# FurrOS: start picom (compositor for i3, bspwm, Awesome, Qtile) with ~/.config/picom.conf.
+# The config uses the GLX backend. Without 3D (a VM without 3D acceleration, an old card) GLX runs on llvmpipe and
+# redraws every frame on the CPU: there the XRender backend is lighter (man picom: --backend; the command line
+# overrides the config file). Rounded corners, shadows and fading work with both.
+pkill -x picom 2>/dev/null
+if furros-gpu-soft; then
+    exec picom -b --backend xrender "$@"
+fi
+exec picom -b "$@"

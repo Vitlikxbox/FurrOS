@@ -1,0 +1,18 @@
+# Hyprland 0.57 dropped hyprland.conf: give users from older FurrOS installs the Lua config (furros-hypr-lua).
+# Runs when Hyprland is installed or upgraded, and when this FurrOS update itself arrives.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = hyprland
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Path
+Target = usr/local/bin/furros-hypr-lua
+
+[Action]
+Description = Moving FurrOS Hyprland settings to the new Lua config...
+When = PostTransaction
+Exec = /bin/sh -c "[ -x /usr/local/bin/furros-hypr-lua ] && /usr/local/bin/furros-hypr-lua || true"

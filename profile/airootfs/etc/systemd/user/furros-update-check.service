@@ -1,0 +1,7 @@
+[Unit]
+Description=FurrOS: remind about waiting updates
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/furros-update --notify

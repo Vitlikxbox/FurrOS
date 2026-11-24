@@ -1,0 +1,12 @@
+[Unit]
+Description=FurrOS first run (Deepin session)
+After=dde-session-core.target
+
+[Service]
+Type=oneshot
+Environment=XDG_CURRENT_DESKTOP=DDE
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/local/bin/furros-firstrun
+
+[Install]
+WantedBy=dde-session-core.target

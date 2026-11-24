@@ -1,0 +1,15 @@
+--- a/kernel/sched/ext/ext.c	2026-11-07 07:05:14.394742568 +0000
++++ b/kernel/sched/ext/ext.c	2026-11-07 07:05:14.474059218 +0000
+@@ -10193,6 +10193,12 @@
+ {
+ 	struct scx_sched *sch;
+ 
++	/*
++	 * GCC keeps @data__sz in a callee-saved register, and pahole 1.32 drops
++	 * a kfunc whose argument location is not the argument register: then
++	 * sched_ext fails to register its kfunc sets. Keep @data__sz in memory.
++	 */
++	barrier_data(&data__sz);
+ 	guard(rcu)();
+ 
+ 	sch = scx_prog_sched(aux);

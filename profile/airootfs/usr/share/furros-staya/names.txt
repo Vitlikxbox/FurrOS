@@ -1,0 +1,14 @@
+# Стая FurrOS: имена поддержавших на Boosty на уровне «Стая», по одному в строке.
+# Only people who agreed to be listed. Lines starting with # are skipped.
+# 24.11.2026: ник — как попросили в личке Boosty; кто не написал — имя профиля Boosty.
+# Стая
+nukerash
+Nesoyas
+MuhaLet
+Puhliw/Puhlf
+OTPAVSHIY
+Vers_77
+IonJohanSampi
+noname9_11
+# Бета-тестер
+KotoSlen

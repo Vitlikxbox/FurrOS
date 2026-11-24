@@ -1,0 +1,13 @@
+[Unit]
+Description=FurrOS: tell the user when the Deepin session has no window manager
+# started late in the session (dde-session-core.target) and right when kwin gives up
+# (OnFailure= in dde-session@x11.service.d/furros-wm-guard.conf)
+After=dde-session-core.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/furros-dde-wm-guard
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=dde-session-core.target

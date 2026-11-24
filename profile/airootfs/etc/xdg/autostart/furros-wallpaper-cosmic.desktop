@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FurrOS live wallpaper
+Comment=Plays the live wallpaper on COSMIC (does nothing when a still picture is set)
+Exec=furros-wallpaper
+OnlyShowIn=COSMIC;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

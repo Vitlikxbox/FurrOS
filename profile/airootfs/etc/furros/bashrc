@@ -1,0 +1,39 @@
+# FurrOS interactive shell extras
+[[ $- != *i* ]] && return
+
+PS1='\[\e[38;2;127;240;240m\]🐾 \u\[\e[0m\]@\[\e[38;2;226;58;68m\]\h\[\e[0m\] \w \$ '
+
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias grep='grep --color=auto'
+alias bark='echo "Гав! 🐶"'
+alias woof='bark'
+alias pet='echo "*виляет хвостом* 💖"'
+alias treat='sudo pacman -Syu'
+
+# pacman and yay ask questions newcomers can't read ([Y/n], [y/N], a number, an invisible password):
+# say once per terminal what to type (furros-pacman-hint). yay's build menus (clean / diff / edit) are skipped:
+# they are for packagers (yay(8): --cleanmenu, --diffmenu, --editmenu).
+_furros_hint() { [[ -n ${FURROS_HINT_SHOWN-} ]] && return; FURROS_HINT_SHOWN=1; command -v furros-pacman-hint >/dev/null && furros-pacman-hint; }
+sudo() {
+    if [[ ${1-} == pacman && ${2-} == -[SUR]* ]]; then _furros_hint; fi
+    command sudo "$@"
+}
+pacman() {
+    if [[ ${1-} == -[SUR]* ]]; then _furros_hint; fi
+    command pacman "$@"
+}
+yay() {
+    if [[ $# -eq 0 || ${1-} == -S* ]]; then
+        _furros_hint
+        command yay --cleanmenu=false --diffmenu=false --editmenu=false --removemake "$@"
+    else
+        command yay "$@"
+    fi
+}
+
+# sourced from /etc/bash.bashrc and again from ~/.bashrc (so the prompt wins); greet only once
+if [[ -z ${FURROS_NO_FETCH-} && -z ${FURROS_FETCHED-} ]] && command -v fastfetch >/dev/null && [[ ${SHLVL:-1} -le 2 ]]; then
+    FURROS_FETCHED=1
+    fastfetch
+fi

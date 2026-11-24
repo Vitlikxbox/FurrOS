@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=About FurrOS
+Name[ru]=О системе FurrOS
+Name[pl]=O systemie FurrOS
+Name[es]=Acerca de FurrOS
+Comment=System info, the Pack and achievements
+Comment[ru]=Сведения о системе, Стая и достижения
+Comment[pl]=Informacje o systemie, Stado i osiągnięcia
+Comment[es]=Información del sistema, la Manada y logros
+Exec=furros-about
+Icon=furros
+Terminal=false
+Categories=System;
+Keywords=about;system;info;furros;achievements;pack;
+StartupWMClass=furros-about

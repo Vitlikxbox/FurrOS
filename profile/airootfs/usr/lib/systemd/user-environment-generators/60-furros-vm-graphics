@@ -1,0 +1,14 @@
+#!/bin/sh
+# FurrOS: software rendering for apps on Hyprland / Sway / Niri inside a virtual machine whose virtual GPU can't hand
+# GPU buffers to a Wayland compositor (VirtualBox, VMware, Hyper-V, QEMU without virgl): apps there otherwise open
+# black or crash. The installer sets this up (flag /etc/furros/vm-software-gl) only for those desktops in a VM.
+# QEMU / virt-manager / GNOME Boxes with virgl 3D (virtio-gpu feature bit 0, VIRTIO_GPU_F_VIRGL) keep the GPU.
+# A systemd user environment generator (man systemd.environment-generator): prints KEY=VALUE lines; the login shell
+# reads the same lines from /etc/profile.d/furros-vm-graphics.sh.
+[ -e /etc/furros/vm-software-gl ] || exit 0
+systemd-detect-virt -q --vm 2>/dev/null || exit 0
+for f in /sys/bus/virtio/drivers/virtio_gpu/virtio*/features; do
+    [ -r "$f" ] && [ "$(head -c1 "$f")" = 1 ] && exit 0
+done
+echo LIBGL_ALWAYS_SOFTWARE=1
+echo QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu

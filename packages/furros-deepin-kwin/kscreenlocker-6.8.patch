@@ -1,0 +1,36 @@
+kscreenlocker 6.8 changed KSldApp: lockScreenShown() was removed (the locker now tracks the greeter
+itself) and the LockState enum lost AcquiringLock (a pending lock already reports Locked).
+deepin-kwin 6.0.8 still used both in wayland_server.cpp, so it no longer compiled against kscreenlocker >= 6.8,
+and the old Arch binary fails at load time with "undefined symbol: _ZN12ScreenLocker7KSldApp15lockScreenShownEv".
+The presentation watcher is kept (it still deletes itself), it just no longer pings the locker.
+
+--- a/src/wayland_server.cpp
++++ b/src/wayland_server.cpp
+@@ -1114,7 +1114,8 @@
+     if (!hasScreenLockerIntegration()) {
+         return false;
+     }
+-    return ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::Locked || ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::AcquiringLock;
++    // kscreenlocker >= 6.8: AcquiringLock is gone, a pending lock already reports Locked
++    return ScreenLocker::KSldApp::self()->lockState() == ScreenLocker::KSldApp::Locked;
+ #else
+     return false;
+ #endif
+@@ -1223,7 +1224,7 @@
+                 if (windowGuard) {
+                     m_signaledOutputs << windowGuard->output();
+                     if (m_signaledOutputs.size() == workspace()->outputs().size()) {
+-                        ScreenLocker::KSldApp::self()->lockScreenShown();
++                        // kscreenlocker >= 6.8: lockScreenShown() no longer exists
+                         delete this;
+                     }
+                 }
+@@ -1231,7 +1232,7 @@
+         }
+     });
+     QTimer::singleShot(1000, this, [this]() {
+-        ScreenLocker::KSldApp::self()->lockScreenShown();
++        // kscreenlocker >= 6.8: lockScreenShown() no longer exists
+         delete this;
+     });
+ }

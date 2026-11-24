@@ -1,0 +1,22 @@
+[package]
+name = "furrboot"
+version = "0.2.0"
+edition = "2024"
+description = "FurrBoot — the FurrOS boot menu (UEFI)"
+license = "GPL-3.0-or-later"
+publish = false
+
+[dependencies]
+uefi = { version = "0.41", features = ["alloc", "global_allocator", "panic_handler", "logger"] }
+fontdue = { version = "0.9", default-features = false, features = ["hashbrown"] }
+log = { version = "0.4", default-features = false }
+libm = "0.2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""FurrOS Downloader: gets the FurrOS ISO from GitHub Releases, where every file must be under 2 GiB, so the ISO
+is published in parts. Downloads the parts (resumable), checks them, joins them into the ISO, checks the ISO,
+deletes the parts and, if asked, writes the ISO to a USB stick.
+
+    furros-downloader                    download the latest ISO into the current folder
+    furros-downloader --dir ~/Downloads  download into that folder
+    furros-downloader --usb              also write it to a USB stick (asks which one, needs sudo)
+    furros-downloader --tag test-xxxx    a specific build instead of the latest one
+    furros-downloader --repo owner/name  another repository (GITHUB_TOKEN in the environment for a private one)
+
+Only the Python standard library is used."""
+import argparse
+import hashlib
+import json
+import locale
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+
+REPO = "Vitlikxbox/FurrOS"
+CHUNK = 1024 * 1024
+UA = "furros-downloader/1.0"
+
+RU = (os.environ.get("LANG") or locale.getlocale()[0] or "").lower().startswith("ru")
+
+
+def say(ru, en, *args):
+    print((ru if RU else en).format(*args), flush=True)
+
+
+def die(ru, en, *args):
+    say("✗ " + ru, "✗ " + en, *args)
+    sys.exit(1)
+
+
+def human(n):
+    for unit in ("Б", "КБ", "МБ", "ГБ") if RU else ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit in ("ГБ", "GB"):
+            return f"{n:.1f} {unit}" if unit not in ("Б", "B") else f"{n} {unit}"
+        n /= 1024
+
+
+def request(url, token=None, accept=None, start=0):
+    headers = {"User-Agent": UA}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    if accept:
+        headers["Accept"] = accept
+    if start:
+        headers["Range"] = f"bytes={start}-"
+    return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60)
+
+
+def release(repo, tag, token):
+    path = f"releases/tags/{tag}" if tag else "releases/latest"
+    try:
+        with request(f"https://api.github.com/repos/{repo}/{path}", token, "application/vnd.github+json") as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            die("Сборка не найдена в {0} (приватный репозиторий? задай GITHUB_TOKEN)",
+                "Build not found in {0} (a private repository? set GITHUB_TOKEN)", repo)
+        die("GitHub ответил ошибкой {0}", "GitHub answered with error {0}", e.code)
+    except urllib.error.URLError as e:
+        die("Нет связи с GitHub: {0}", "Can't reach GitHub: {0}", e.reason)
+
+
+def sha256_file(path, label):
+    h, done, size = hashlib.sha256(), 0, os.path.getsize(path)
+    with open(path, "rb") as f:
+        while block := f.read(CHUNK * 8):
+            h.update(block)
+            done += len(block)
+            bar(label, done, size)
+    print(flush=True)
+    return h.hexdigest()
+
+
+def bar(label, done, total, speed=None):
+    pct = done * 100 // total if total else 100
+    fill = pct * 30 // 100
+    extra = f"  {human(speed)}/s" if speed else ""
+    print(f"\r  {label} [{'#' * fill}{'.' * (30 - fill)}] {pct:3d}%  {human(done)} / {human(total)}{extra}   ",
+          end="", flush=True)
+
+
+def download(asset, dest, token):
+    """Resumable download: an interrupted .partN keeps its bytes and continues from there."""
+    total, name = asset["size"], asset["name"]
+    # a private repository only serves files through the API with the token; a public one through the plain link
+    url, accept = (asset["url"], "application/octet-stream") if token else (asset["browser_download_url"], None)
+    for attempt in range(1, 21):
+        have = os.path.getsize(dest) if os.path.exists(dest) else 0
+        if have == total:
+            break
+        if have > total:
+            os.remove(dest)
+            have = 0
+        try:
+            with request(url, token, accept, start=have) as r, open(dest, "ab" if have else "wb") as f:
+                if have and r.status != 206:  # the server ignored the range: start over
+                    f.truncate(0)
+                    have = 0
+                t0, got = time.monotonic(), 0
+                while block := r.read(CHUNK):
+                    f.write(block)
+                    got += len(block)
+                    bar(name, have + got, total, got / max(time.monotonic() - t0, 0.001))
+            print(flush=True)
+        except (urllib.error.URLError, OSError, TimeoutError) as e:
+            print(flush=True)
+            say("  связь оборвалась ({0}), продолжаю с того же места… ({1}/20)",
+                "  connection dropped ({0}), resuming from the same point… ({1}/20)", e, attempt)
+            time.sleep(min(5 * attempt, 30))
+    if os.path.getsize(dest) != total:
+        die("Не удалось скачать {0}. Запусти программу ещё раз — она продолжит с того же места",
+            "Could not download {0}. Run the program again — it will resume", name)
+
+
+def usb_disks():
+    out = subprocess.run(["lsblk", "-J", "-b", "-d", "-o", "PATH,SIZE,MODEL,TRAN,RM,TYPE"],
+                         capture_output=True, text=True).stdout
+    disks = json.loads(out or '{"blockdevices": []}')["blockdevices"]
+    return [d for d in disks if d.get("type") == "disk" and d.get("tran") == "usb"]
+
+
+def write_usb(iso):
+    if not sys.platform.startswith("linux"):
+        die("Запись на флешку пока есть только в Linux. Запиши ISO через Rufus (режим DD) или Ventoy",
+            "Writing to a USB stick is Linux-only for now. Use Rufus (DD mode) or Ventoy")
+    disks = usb_disks()
+    if not disks:
+        die("USB-флешка не найдена. Вставь её и запусти: furros-downloader --usb --dir <папка с ISO>",
+            "No USB stick found. Plug it in and run: furros-downloader --usb --dir <folder with the ISO>")
+    size = os.path.getsize(iso)
+    say("\nНайденные USB-диски (внутренние диски сюда не попадают):", "\nUSB disks found (internal disks are never listed):")
+    for i, d in enumerate(disks, 1):
+        print(f"  {i}) {d['path']}  {human(int(d['size']))}  {(d.get('model') or '').strip()}")
+    pick = input("Номер флешки (Enter — отмена): " if RU else "Stick number (Enter — cancel): ").strip()
+    if not pick.isdigit() or not 1 <= int(pick) <= len(disks):
+        say("Отменено, ISO сохранён.", "Cancelled, the ISO is kept.")
+        return
+    d = disks[int(pick) - 1]
+    if int(d["size"]) < size:
+        die("Флешка {0} меньше образа ({1})", "Stick {0} is smaller than the image ({1})", d["path"], human(size))
+    name = os.path.basename(d["path"])
+    say("\n⚠ ВСЁ на {0} ({1}, {2}) будет удалено.", "\n⚠ EVERYTHING on {0} ({1}, {2}) will be erased.",
+        d["path"], (d.get("model") or "").strip(), human(int(d["size"])))
+    if input(f"Чтобы продолжить, напиши {name}: " if RU else f"To continue, type {name}: ").strip() != name:
+        say("Отменено, ISO сохранён.", "Cancelled, the ISO is kept.")
+        return
+    # the rest needs root: unmount the stick's partitions, write, flush, read back and compare
+    script = (f"set -e; for p in $(lsblk -lnpo PATH {d['path']} | tail -n +2); do umount \"$p\" 2>/dev/null || true; done; "
+              f"dd if='{iso}' of='{d['path']}' bs=4M conv=fsync oflag=direct status=progress; sync")
+    say("Записываю (нужен пароль sudo)…", "Writing (sudo password needed)…")
+    if subprocess.run(["sudo", "sh", "-c", script]).returncode:
+        die("Запись не удалась", "Writing failed")
+    say("Проверяю записанное…", "Checking what was written…")
+    want = sha256_file(iso, "ISO")
+    r = subprocess.run(["sudo", "sh", "-c", f"head -c {size} '{d['path']}' | sha256sum"], capture_output=True, text=True)
+    got = (r.stdout.split() or [""])[0]
+    if got != want:
+        die("Флешка отличается от образа — запиши ещё раз или возьми другую флешку",
+            "The stick differs from the image — write again or use another stick")
+    say("✓ Флешка готова! Загрузись с неё (меню загрузки: F8/F11/F12/Esc).",
+        "✓ The stick is ready! Boot from it (boot menu: F8/F11/F12/Esc).")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="FurrOS ISO downloader")
+    ap.add_argument("--repo", default=REPO)
+    ap.add_argument("--tag", help="build tag (default: the latest release)")
+    ap.add_argument("--dir", default=".", help="where to put the ISO")
+    ap.add_argument("--usb", action="store_true", help="write the ISO to a USB stick afterwards")
+    ap.add_argument("--keep-parts", action="store_true", help="don't delete the parts after joining")
+    a = ap.parse_args()
+    token = os.environ.get("GITHUB_TOKEN")
+    os.makedirs(a.dir, exist_ok=True)
+
+    say("🐾 FurrOS Downloader", "🐾 FurrOS Downloader")
+    rel = release(a.repo, a.tag, token)
+    assets = {x["name"]: x for x in rel.get("assets", [])}
+    isos = sorted(n for n in assets if re.fullmatch(r".+\.iso", n))
+    parts = sorted((n for n in assets if re.fullmatch(r".+\.iso\.part\d+", n)), key=lambda n: int(n.rsplit("part", 1)[1]))
+    if not isos and not parts:
+        die("В сборке {0} нет ISO", "Build {0} has no ISO", rel.get("tag_name"))
+    iso_name = isos[0] if isos else parts[0].rsplit(".part", 1)[0]
+    pieces = [iso_name] if isos else parts
+    iso = os.path.join(a.dir, iso_name)
+    say("Сборка: {0}  ·  файлов: {1}  ·  всего {2}", "Build: {0}  ·  files: {1}  ·  total {2}",
+        rel.get("name") or rel.get("tag_name"), len(pieces), human(sum(assets[p]["size"] for p in pieces)))
+
+    # the expected ISO hash: the .sha256 file of the release
+    want = None
+    if iso_name + ".sha256" in assets:
+        a256 = assets[iso_name + ".sha256"]
+        url, acc = (a256["url"], "application/octet-stream") if token else (a256["browser_download_url"], None)
+        with request(url, token, acc) as r:
+            want = (r.read().decode().split() or [""])[0].lower()
+
+    if os.path.exists(iso) and want and os.path.getsize(iso) == sum(assets[p]["size"] for p in pieces):
+        say("ISO уже есть, проверяю…", "The ISO is already here, checking…")
+        if sha256_file(iso, iso_name) == want:
+            say("✓ ISO в порядке: {0}", "✓ The ISO is fine: {0}", iso)
+            if a.usb:
+                write_usb(iso)
+            return
+
+    for p in pieces:
+        dest = os.path.join(a.dir, p)
+        download(assets[p], dest, token)
+        digest = (assets[p].get("digest") or "").removeprefix("sha256:")
+        if digest:
+            if sha256_file(dest, p) != digest:
+                os.remove(dest)
+                die("{0} скачан с ошибкой и удалён — запусти программу ещё раз",
+                    "{0} was damaged and is deleted — run the program again", p)
+            say("  ✓ {0} проверен", "  ✓ {0} checked", p)
+
+    if len(pieces) > 1:
+        need = sum(assets[p]["size"] for p in pieces)
+        if shutil.disk_usage(a.dir).free < need:
+            die("Для склейки нужно ещё {0} свободного места", "Joining needs {0} more free space", human(need))
+        say("Склеиваю части в {0}…", "Joining the parts into {0}…", iso_name)
+        done = 0
+        with open(iso + ".tmp", "wb") as out:
+            for p in pieces:
+                with open(os.path.join(a.dir, p), "rb") as f:
+                    while block := f.read(CHUNK * 8):
+                        out.write(block)
+                        done += len(block)
+                        bar(iso_name, done, need)
+        print(flush=True)
+        os.replace(iso + ".tmp", iso)
+
+    if want:
+        if sha256_file(iso, iso_name) != want:
+            die("Хэш ISO не совпал — удали файлы и скачай заново", "The ISO hash doesn't match — delete the files and download again")
+        say("✓ ISO проверен: SHA256 {0}", "✓ ISO checked: SHA256 {0}", want)
+    if len(pieces) > 1 and not a.keep_parts:
+        for p in pieces:
+            os.remove(os.path.join(a.dir, p))
+        say("Части удалены.", "The parts are deleted.")
+    say("✓ Готово: {0}", "✓ Done: {0}", os.path.abspath(iso))
+    if a.usb:
+        write_usb(iso)
+    else:
+        say("Записать на флешку: furros-downloader --usb --dir {0}  (или Rufus в режиме DD / Ventoy)",
+            "Write to a USB stick: furros-downloader --usb --dir {0}  (or Rufus in DD mode / Ventoy)", a.dir)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print()
+        say("Остановлено. Запусти ещё раз — скачивание продолжится с того же места.",
+            "Stopped. Run it again — the download resumes from the same point.")
+        sys.exit(130)

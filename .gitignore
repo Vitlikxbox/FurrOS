@@ -1,1 +1,5 @@
 # nothing to ignore — repo holds only README, docs images and brand
+__pycache__/
+*.pyc
+bootloader/furrboot/target/
+*.efi

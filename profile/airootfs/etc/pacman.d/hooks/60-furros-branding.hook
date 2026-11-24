@@ -1,0 +1,15 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+Target = bash
+Target = plymouth
+Target = grub
+Target = deepin-desktop-base
+Target = lsb-release
+
+[Action]
+Description = Wagging FurrOS branding back into place...
+When = PostTransaction
+Exec = /bin/sh -c "[ -x /usr/local/bin/furros-brand ] && /usr/local/bin/furros-brand || true"

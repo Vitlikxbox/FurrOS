@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Lapa
+Name[ru]=Лапа
+Name[pl]=Łapa
+Comment=Lapa in the tray: FurrOS apps, disk space and achievements
+Comment[ru]=Лапа в трее: приложения FurrOS, место на диске и достижения
+Exec=furros-lapa
+Icon=furros
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

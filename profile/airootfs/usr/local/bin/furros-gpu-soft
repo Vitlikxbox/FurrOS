@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# FurrOS: exit 0 when this session draws with the CPU instead of a GPU: virtual machines without 3D acceleration
+# (VirtualBox/VMware/Hyper-V/QEMU without virgl), unknown or very old cards. Used to pick lighter settings
+# (picom's XRender backend, a cheaper live-wallpaper player) so such machines stay responsive.
+#   furros-gpu-soft && echo "software rendering"
+if [[ -n ${DISPLAY:-} ]] && command -v glxinfo >/dev/null; then
+    # Mesa names its CPU renderers llvmpipe / softpipe / swrast (glxinfo -B: "OpenGL renderer string")
+    r=$(timeout 5 glxinfo -B 2>/dev/null | sed -n 's/^ *OpenGL renderer string: //p')
+    if [[ -n $r ]]; then
+        [[ $r =~ llvmpipe|softpipe|swrast ]]
+        exit
+    fi
+fi
+# no X (Wayland, a script): ask EGL without any window system. A render node alone proves nothing: VirtualBox's
+# VMSVGA has one with 3D acceleration switched off too, and then renders with llvmpipe
+if command -v eglinfo >/dev/null; then
+    r=$(timeout 5 eglinfo -B -p surfaceless 2>/dev/null | sed -n 's/^ *OpenGL[^:]*renderer: //p' | head -1)
+    if [[ -n $r ]]; then
+        [[ $r =~ llvmpipe|softpipe|swrast ]]
+        exit
+    fi
+fi
+ls /dev/dri/renderD* >/dev/null 2>&1 || exit 0
+exit 1

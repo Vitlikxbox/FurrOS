@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [{ "Name": "FurrOS" }],
+        "Category": "",
+        "Description": "FurrOS splash screen",
+        "Id": "org.furros.desktop",
+        "License": "GPLv2+",
+        "Name": "FurrOS",
+        "Version": "1.0"
+    },
+    "X-Plasma-APIVersion": "2"
+}

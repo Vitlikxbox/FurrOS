@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# FurrOS: print the running desktop in lower case (kde, gnome, hyprland, qtile, i3, …).
+# XDG_CURRENT_DESKTOP comes from DesktopNames= in the session file, and the session files of i3, Awesome, Qtile,
+# Sway and Niri have none, so the login screen leaves it unset there (tester report 20.11, Qtile). Then: the
+# session name the login screen does set, the window manager that is actually running, and finally the desktop
+# chosen in the installer (/etc/furros/settings.conf).
+#   desk=$(furros-desktop)
+set -u
+for v in "${XDG_CURRENT_DESKTOP:-}" "${XDG_SESSION_DESKTOP:-}" "${DESKTOP_SESSION:-}"; do
+    v=${v##*/}               # DESKTOP_SESSION may be a path to the session file
+    v=${v%.desktop}
+    if [[ -n $v ]]; then
+        echo "${v,,}"
+        exit 0
+    fi
+done
+# the process that runs the session, first match wins (order: the more specific names first)
+for p in plasmashell:kde gnome-shell:gnome cosmic-comp:cosmic cinnamon:cinnamon xfce4-session:xfce mate-session:mate \
+         budgie-panel:budgie lxqt-session:lxqt dde-session:deepin Hyprland:hyprland niri:niri sway:sway \
+         qtile:qtile i3:i3 bspwm:bspwm awesome:awesome; do
+    if pgrep -u "$(id -u)" -x "${p%%:*}" >/dev/null 2>&1 || { [[ ${p%%:*} == qtile ]] && pgrep -u "$(id -u)" -f "bin/qtile start" >/dev/null 2>&1; }; then
+        echo "${p##*:}"
+        exit 0
+    fi
+done
+d=$(sed -n 's/^DESKTOP=//p' /etc/furros/settings.conf 2>/dev/null)
+[[ -n $d ]] && { echo "${d,,}"; exit 0; }
+exit 1

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Check / install graphics drivers for this machine (see /usr/lib/furros/drivers/furros_hw.py)
+exec python3 /usr/lib/furros/drivers/furros_hw.py "$@"

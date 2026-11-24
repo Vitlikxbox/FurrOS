@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Live session only: user "furry" (password "furry") with passwordless sudo and the installer on the desktop.
+set -e
+id furry >/dev/null 2>&1 && exit 0
+useradd -m -G wheel,audio,video,input,storage -s /bin/bash -c "Furry (live)" furry
+echo "furry:furry" | chpasswd
+echo "root:furry" | chpasswd
+echo "furry ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/00-furros-live
+chmod 440 /etc/sudoers.d/00-furros-live
+H=/home/furry
+desk=$(sudo -u furry xdg-user-dir DESKTOP 2>/dev/null || echo "$H/Desktop")
+[[ $desk == "$H" ]] && desk="$H/Desktop"
+mkdir -p "$desk" "$H/.config/autostart" "$H/.config/furros"
+for app in furros-installer furros-academy; do
+    cp /usr/share/applications/$app.desktop "$desk/"
+    chmod +x "$desk/$app.desktop"
+done
+cp /usr/share/applications/furros-installer.desktop "$H/.config/autostart/"
+touch "$H/.config/furros/academy-shown"
+
+# Live session only: never lock the screen and never blank it, so a user without a
+# password is not stuck at a lock screen while the installer downloads packages.
+cat > "$H/.config/kscreenlockerrc" <<'EOF'
+[Daemon]
+Autolock=false
+LockOnResume=false
+Timeout=0
+EOF
+cat > "$H/.config/powermanagementprofilesrc" <<'EOF'
+[AC][DPMSControl]
+idleTime=7200
+
+[AC][DimDisplay]
+idleTime=7200
+
+[AC][SuspendSession]
+idleTime=0
+suspendType=0
+
+[Battery][DPMSControl]
+idleTime=7200
+
+[Battery][DimDisplay]
+idleTime=7200
+
+[Battery][SuspendSession]
+idleTime=0
+suspendType=0
+
+[LowBattery][DPMSControl]
+idleTime=7200
+
+[LowBattery][SuspendSession]
+idleTime=0
+suspendType=0
+EOF
+# belt and braces: kill any blanking the moment the session starts, X11 or Wayland
+cat > "$H/.config/autostart/furros-nolock.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=FurrOS live no-blank
+Exec=/bin/sh -c "xset s off -dpms 2>/dev/null; sleep 4; qdbus org.freedesktop.ScreenSaver /ScreenSaver SetActive false 2>/dev/null; true"
+X-KDE-autostart-phase=2
+NoDisplay=true
+EOF
+
+chown -R furry:furry "$H"

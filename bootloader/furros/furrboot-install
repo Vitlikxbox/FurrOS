@@ -1,0 +1,136 @@
+#!/bin/bash
+# furrboot-install: puts FurrBoot on the EFI system partition and gives it a firmware boot entry.
+#   \EFI\FurrOS\furrboot.efi            our copy, booted through the "FurrOS" firmware entry
+#   \EFI\BOOT\BOOTX64.EFI               only if that fallback path is empty (Windows or another OS may own it)
+# then runs furrboot-update to write the menu. Re-running it just refreshes the .efi (after a package update).
+#
+# Old PCs without UEFI (BIOS) can't run FurrBoot: --bios DISK puts Limine there instead, in FurrOS colours, with
+# the same menu (furrboot-update writes limine.conf from it). Limine reads only FAT, so the kernels are copied to
+# the FAT partition named by --esp (FurrOS creates one for this on BIOS installs); see USAGE.md "BIOS/GPT".
+#
+# Usage: furrboot-install [--esp DIR] [--no-nvram] [--dry-run]
+#        furrboot-install --bios DISK --esp DIR [--dry-run]
+#   --no-nvram  don't touch firmware boot entries (chroot installs that set them up separately, or tests)
+set -euo pipefail
+
+ESP=""; NVRAM=1; DRY=0; UPDATE_ARGS=(); BIOS_DISK=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --esp) ESP=$2; UPDATE_ARGS=(--boot "$2"); shift ;;  # a partition named here is also where the menu goes
+        --bios) BIOS_DISK=$2; shift ;;
+        --no-nvram) NVRAM=0 ;;
+        --dry-run) DRY=1 ;;
+        -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+        *) echo "furrboot-install: unknown option $1" >&2; exit 2 ;;
+    esac
+    shift
+done
+[ "$(id -u)" = 0 ] || [ "$DRY" = 1 ] || { echo "furrboot-install: run as root" >&2; exit 1; }
+run() { if [ "$DRY" = 1 ]; then echo "  [dry] $*"; else "$@"; fi; }
+log() { echo "furrboot-install: $*"; }
+
+# ---------- BIOS: Limine ----------
+# --bios auto (the pacman hook after a limine upgrade): find the FAT partition that already holds Limine and its
+# disk. limine-bios.sys and the boot code in the MBR must come from the same Limine version (USAGE.md).
+if [ "$BIOS_DISK" = auto ]; then
+    if [ -z "$ESP" ]; then
+        for d in /boot/efi /efi /boot; do
+            # an automounted partition is listed twice (autofs + vfat), so look for vfat among the lines
+            [ -f "$d/limine/limine-bios.sys" ] && findmnt -no FSTYPE "$d" 2>/dev/null | grep -qx vfat && { ESP=$d; break; }
+        done
+    fi
+    [ -n "$ESP" ] || { log "Limine is not installed here: nothing to do"; exit 0; }
+    src=$(findmnt -no SOURCE --target "$ESP" | grep '^/dev/' | tail -1 || true)
+    [ -b "$src" ] || { log "$ESP is not on a disk partition: Limine boot code not updated"; exit 0; }
+    BIOS_DISK=/dev/$(lsblk -no PKNAME "$src" | head -1)
+    UPDATE_ARGS=(--boot "$ESP")
+fi
+if [ -n "$BIOS_DISK" ]; then
+    [ -n "$ESP" ] && [ -d "$ESP" ] || { echo "furrboot-install: --bios needs --esp DIR (the FAT boot partition)" >&2; exit 1; }
+    [ -b "$BIOS_DISK" ] || [ "$DRY" = 1 ] || { echo "furrboot-install: $BIOS_DISK is not a disk" >&2; exit 1; }
+    LIMINE_DIR=${FURRBOOT_LIMINE:-/usr/share/limine}
+    [ -f "$LIMINE_DIR/limine-bios.sys" ] || { echo "furrboot-install: $LIMINE_DIR/limine-bios.sys is missing (pacman -S limine)" >&2; exit 1; }
+    # limine.conf and limine-bios.sys are looked for in /boot/limine, /boot, /limine or / of any partition (CONFIG.md)
+    run mkdir -p "$ESP/limine"
+    run install -m644 "$LIMINE_DIR/limine-bios.sys" "$ESP/limine/limine-bios.sys"
+    WP=${FURRBOOT_LIMINE_WALLPAPER:-/usr/lib/furrboot/limine/furros.png}
+    [ -f "$WP" ] && run install -m644 "$WP" "$ESP/limine/furros.png"
+    # GPT: stage 2 goes into the "BIOS boot" partition (usually the first one); MBR: no partition number
+    num=""
+    if [ "$(blkid -s PTTYPE -o value "$BIOS_DISK" 2>/dev/null)" = gpt ] || [ "$DRY" = 1 ]; then
+        # blkid -p reads the partition table itself (lsblk's PARTTYPE comes from udev and can be empty)
+        for sp in /sys/class/block/"${BIOS_DISK##*/}"/*/partition; do
+            [ -f "$sp" ] || continue
+            p=/dev/$(basename "$(dirname "$sp")")
+            t=$(blkid -p -s PART_ENTRY_TYPE -o value "$p" 2>/dev/null || true)
+            [ "${t,,}" = 21686148-6449-6e6f-744e-656564454649 ] || continue
+            num=$(cat "$sp"); break
+        done
+        [ -n "$num" ] || [ "$DRY" = 1 ] || { echo "furrboot-install: $BIOS_DISK has no \"BIOS boot\" partition for Limine" >&2; exit 1; }
+    fi
+    run limine bios-install "$BIOS_DISK" $num
+    log "Limine installed to $BIOS_DISK${num:+ (stage 2 in partition $num)}, files in $ESP/limine"
+    if [ "$DRY" = 1 ]; then furrboot-update --boot "$ESP" --dry-run; else furrboot-update --boot "$ESP"; fi
+    exit 0
+fi
+
+EFI_SRC=${FURRBOOT_EFI:-/usr/lib/furrboot/furrboot.efi}
+[ -f "$EFI_SRC" ] || { echo "furrboot-install: $EFI_SRC is missing" >&2; exit 1; }
+[ -n "$ESP" ] || ESP=$(bootctl --print-esp-path 2>/dev/null || true)
+[ -n "$ESP" ] && [ -d "$ESP" ] || { echo "furrboot-install: EFI system partition not found (use --esp DIR)" >&2; exit 1; }
+
+# FAT is case-insensitive but the path on Linux is not: reuse the spelling that is already there
+find_ci() { # dir name -> existing entry with that name in any case, or the name itself
+    local hit
+    hit=$(find "$1" -mindepth 1 -maxdepth 1 -iname "$2" -print -quit 2>/dev/null || true)
+    [ -n "$hit" ] && echo "${hit##*/}" || echo "$2"
+}
+EFIDIR="$ESP/$(find_ci "$ESP" EFI)"
+OURS="$EFIDIR/$(find_ci "$EFIDIR" FurrOS)"
+run mkdir -p "$OURS"
+run install -m644 "$EFI_SRC" "$OURS/furrboot.efi"
+log "installed $OURS/furrboot.efi"
+# file-system drivers FurrBoot loads at start (efifs Btrfs: kernels are read from the FurrOS partition itself)
+DRV_SRC=${FURRBOOT_DRIVERS:-/usr/lib/furrboot/drivers}
+for d in "$DRV_SRC"/*.efi; do
+    [ -f "$d" ] || continue
+    run mkdir -p "$OURS/drivers"
+    run install -m644 "$d" "$OURS/drivers/${d##*/}"
+    log "installed driver $OURS/drivers/${d##*/}"
+done
+
+FB="$EFIDIR/$(find_ci "$EFIDIR" BOOT)"
+FBF="$FB/$(find_ci "$FB" BOOTX64.EFI)"
+if [ ! -e "$FBF" ] || cmp -s "$FBF" "$EFI_SRC" || [ -f "$OURS/.fallback-is-ours" ]; then
+    run mkdir -p "$FB"
+    run install -m644 "$EFI_SRC" "$FBF"
+    run touch "$OURS/.fallback-is-ours"   # so later updates refresh it, and only it
+    log "fallback path $FBF -> FurrBoot"
+else
+    log "fallback path $FBF belongs to another loader, left alone"
+fi
+
+firmware_entry() {
+    [ -d /sys/firmware/efi ] || { log "not booted in UEFI mode: no firmware boot entry (the fallback path still works)"; return; }
+    # already there? efibootmgr -v prints the loader path of every entry
+    if efibootmgr -v 2>/dev/null | grep -qiF 'furrboot.efi'; then log "firmware boot entry already exists"; return; fi
+    local src dev disk part
+    # an automounted ESP (x-systemd.automount, as FurrOS sets up a shared Windows ESP) is listed twice by findmnt:
+    # the autofs trigger "systemd-1" and the real partition. Take the block device.
+    src=$(findmnt -no SOURCE --target "$ESP" | grep '^/dev/' | tail -1)
+    dev=${src##*/}
+    if [ ! -b "$src" ] || [ ! -r "/sys/class/block/$dev/partition" ]; then
+        log "$ESP is not on a disk partition ($src): no firmware boot entry"; return
+    fi
+    disk=/dev/$(lsblk -no PKNAME "$src" | head -1)
+    part=$(cat "/sys/class/block/$dev/partition")
+    # -c creates the entry and puts it first in BootOrder (efibootmgr(8)). Its own name, so a GRUB entry
+    # ("FurrOS", \EFI\FurrOS\grubx64.efi) stays next to it in the firmware's boot menu as a way back.
+    run efibootmgr -q -c -d "$disk" -p "$part" -L "FurrBoot" -l '\EFI\FurrOS\furrboot.efi'
+    log "firmware boot entry \"FurrBoot\" -> $disk partition $part (first in the boot order)"
+}
+[ "$NVRAM" = 1 ] && firmware_entry
+
+if command -v furrboot-update >/dev/null; then
+    if [ "$DRY" = 1 ]; then furrboot-update "${UPDATE_ARGS[@]}" --dry-run; else furrboot-update "${UPDATE_ARGS[@]}"; fi
+fi

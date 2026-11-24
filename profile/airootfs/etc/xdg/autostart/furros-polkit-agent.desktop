@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FurrOS: PolicyKit agent
+Comment=Asks for the password when an app needs admin rights (Xfce has no agent of its own)
+Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+OnlyShowIn=XFCE;
+NoDisplay=true
+X-GNOME-AutoRestart=true

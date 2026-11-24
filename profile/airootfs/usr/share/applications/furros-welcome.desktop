@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to FurrOS
+Name[ru]=Добро пожаловать в FurrOS
+Name[pl]=Witaj w FurrOS
+Name[es]=Bienvenido a FurrOS
+Comment=First steps in FurrOS with Pixie
+Comment[ru]=Первые шаги в FurrOS с Пикси
+Comment[pl]=Pierwsze kroki w FurrOS z Pixie
+Comment[es]=Primeros pasos en FurrOS con Pixie
+Exec=furros-welcome --no-school
+Icon=furros
+Terminal=false
+Categories=Education;
+Keywords=welcome;start;furros;pixie;
+StartupWMClass=furros-welcome

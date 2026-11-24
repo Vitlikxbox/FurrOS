@@ -1,0 +1,103 @@
+# FurrOS rebuild of Arch's deepin-kwin 6.0.8-12 (Felix Yan's PKGBUILD) against the current KDE libraries.
+#
+# Why: Arch's deepin-kwin 6.0.8-12 was built on 2026-10-01; kscreenlocker / kglobalacceld 6.8 (2026-11-15) changed
+# their ABI, so its libkwin.so.5 has three unresolved symbols and kwin_x11 dies at start
+# ("symbol lookup error"). DDE is then left without any window manager (tiny windows, grey boxes on the dock,
+# no Alt+F4 / Alt+Tab). Report by tester Dimka, 2026-11-18; symbols checked with nm against the Arch packages:
+#   ScreenLocker::KSldApp::lock(EstablishLock, int)   -> 6.8 has lock(EstablishLock)      (fixed by rebuilding)
+#   KGlobalAccelD::KGlobalAccelD(QObject*)            -> 6.8 has KGlobalAccelD()           (fixed by rebuilding)
+#   ScreenLocker::KSldApp::lockScreenShown()          -> removed in 6.8                    (kscreenlocker-6.8.patch)
+# and kglobalacceld 6.8 dropped the kglobalaccel_interface.h header                       (kglobalacceld-6.8.patch)
+#
+# Packaging: [furros] sits after [extra] in pacman.conf, and pacman takes a package from the first repo that has it,
+# so a same-named deepin-kwin in [furros] would never win. Hence a new name that replaces/provides deepin-kwin.
+# The versioned depends make pacman refuse a half-upgrade that mixes this build with an older kscreenlocker.
+# Drop this package once Arch ships deepin-kwin >= 6.0.8-13 built against kscreenlocker 6.8 (check with
+# tools/check-deepin-kwin-abi.sh).
+
+pkgname=furros-deepin-kwin
+_pkgname=deepin-kwin
+pkgver=6.0.8
+pkgrel=13
+pkgdesc='DDE window manager forked from KWin (FurrOS rebuild for kscreenlocker/kglobalacceld 6.8)'
+arch=('x86_64')
+url="https://github.com/linuxdeepin/deepin-kwin"
+license=('GPL-2.0-or-later')
+depends=(qt6-base qt6-declarative qt6-shadertools kauth kconfig kconfigwidgets
+         kcoreaddons kdbusaddons kdeclarative kglobalaccel 'kglobalacceld>=6.8' ki18n kidletime kitemmodels kitemviews knotifications
+         kcrash kpackage libepoxy kwidgetsaddons kwindowsystem kcmutils knewstuff krunner kservice
+         kwayland ktextwidgets kxmlgui xcb-util-cursor xorg-xwayland libpipewire libkscreen
+         'kscreenlocker>=6.8' lcms2 libqaccessibilityclient-qt6 python freetype2 gsettings-qt6 libcap
+         systemd-libs bash libxkbcommon libxss libxi libinput xcb-util-wm wayland perl libxcb
+         xcb-util-keysyms libx11 libxtst libdrm glibc libgcc libstdc++ mesa deepin-qt6platform-plugins
+         kcolorscheme libglvnd libxcvt kquickcharts milou)
+makedepends=(git extra-cmake-modules ninja qt6-tools clang wayland-protocols
+             deepin-wayland-protocols)
+provides=("deepin-kwin=$pkgver")
+conflicts=('deepin-kwin' 'kwin' 'kwin-x11')
+replaces=('deepin-kwin')
+source=("git+https://github.com/linuxdeepin/deepin-kwin.git#tag=$pkgver"
+        "git+https://github.com/linuxdeepin/dde-kwin.git#tag=$pkgver"
+        qt-6.10.patch
+        qt-6.10.2.patch
+        disable-kglobalaccel.patch
+        gcc-16.patch
+        kscreenlocker-6.8.patch
+        kglobalacceld-6.8.patch)
+sha512sums=('295451187c76e690af0bf3ae87ad1a03cc323efbf9971ba76c9fbaf9ec5590a0bbcdeed4331f106462c5c44519a8a44ed3272ed3bf63fecb1e6042275b557f4d'
+            '96f034c2c1a8a83fc643bfd1dd7a5ffde9325895e3adad5f49aed3a90bd4aa59b02e7482d4af08818873beb8424c3a3c9a0c29d14dfae001681b1ae9a8821429'
+            'e2d18def480dc62cdd7d0a0e2d6b313501701616a01983ad2f7fe092ad044b1882e9cd39f7bb47564743e6b2b63fee2585369b319e41021db2f3aa0e1f7466c8'
+            'a561fed7fe5922128cc85f0014034555ffd12a56b6edf55ed8e2f10d6bc64cc93fdd2b36d95d3dbb726fba3bbdfdd3addb72a141e8488be26a0cc1d79aa55bd9'
+            '18f4ef2cce61fe8e6b6a0ec35fd942ad631e37cfbf2688ef9dbc7767d93a27d27603fcd5b2df4383b2a3a7449402a933751f7b2ebe90edb3ae7110c849e766fa'
+            '84da5bdb4f84540e68fd4fc042f5e0c458abdebdfeb545d03febd744e7155bfc381577ba50f2833ab43b7d0187778fd065e5de7820ca05325ce227f6a0f8499f'
+            'SKIP'
+            'SKIP')
+
+prepare() {
+  cd $_pkgname
+  # Fix build with Qt 6.9
+  git cherry-pick -n 664808264f5a49c306834565d0e0c631a8feda27
+  sed -i 's|/usr/share/backgrounds/default_background.jpg|/usr/share/backgrounds/deepin/desktop.jpg|' src/effects/multitaskview/multitaskview.cpp
+
+  patch -p1 -i ../qt-6.10.patch
+  patch -p1 -i ../qt-6.10.2.patch
+  patch -p1 -i ../gcc-16.patch
+  # Disable kglobalaccel, doesn't build with Plasma 6.5
+  patch -p1 -i ../disable-kglobalaccel.patch
+  # FurrOS: kscreenlocker 6.8 removed KSldApp::lockScreenShown()
+  patch -p1 -i ../kscreenlocker-6.8.patch
+  # FurrOS: kglobalacceld 6.8 no longer ships kglobalaccel_interface.h; the interface plugin is off anyway
+  # (ENABLE_KGLOBALACCEL=OFF above), so its only users are compiled out exactly like the plugin
+  patch -p1 -i ../kglobalacceld-6.8.patch
+}
+
+build() {
+  cd $_pkgname
+  cmake . -GNinja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=lib \
+          -DBUILD_ON_V25=ON -DBUILD_TESTING=OFF \
+          -DENABLE_KGLOBALACCEL=OFF
+  ninja
+
+  cd "$srcdir/dde-kwin"
+  cmake . -GNinja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_SYSCONFDIR=/etc
+  ninja
+}
+
+check() {
+  # the reason this package exists: every symbol libkwin / kwin_x11 import must resolve against the installed libs
+  cd $_pkgname
+  local bad
+  bad=$(LD_LIBRARY_PATH="$PWD/bin:$PWD/lib:$PWD" ldd -r bin/kwin_x11 2>&1 | grep -E 'undefined symbol' || true)
+  if [[ -n $bad ]]; then
+    echo "$bad" | c++filt >&2
+    return 1
+  fi
+}
+
+package() {
+  cd $_pkgname
+  DESTDIR="$pkgdir" ninja install
+
+  cd "$srcdir/dde-kwin"
+  DESTDIR="$pkgdir" ninja install
+}

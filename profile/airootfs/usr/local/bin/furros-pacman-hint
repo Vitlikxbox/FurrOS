@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# One line before pacman / yay may ask something: what [Y/n], [y/N] and "enter a number" mean, and that the
+# password stays invisible while typing. In the system language (UI_LANG from the installer, else $LANG).
+lang=$(sed -n 's/^UI_LANG=//p' /etc/furros/settings.conf 2>/dev/null)
+[[ -n $lang ]] || lang=${LANG:0:2}
+case $lang in
+    ru) msg="🐾 Подсказка Лапы: «[Y/n]» — просто нажми Enter, это «да» (большая буква — ответ по умолчанию). «[y/N]» — Enter значит «нет»; чтобы ответить «да», впиши y и нажми Enter. Просят число — Enter выберет первый вариант. Пароль при вводе не виден — так и задумано: печатай и жми Enter." ;;
+    pl) msg="🐾 Podpowiedź Łapy: «[Y/n]» — po prostu wciśnij Enter, to «tak» (wielka litera to odpowiedź domyślna). «[y/N]» — Enter znaczy «nie»; żeby odpowiedzieć «tak», wpisz y i wciśnij Enter. Proszą o liczbę — Enter wybierze pierwszą opcję. Hasła nie widać podczas pisania — tak ma być: pisz i wciśnij Enter." ;;
+    es) msg="🐾 Pista de Lapa: «[Y/n]» — pulsa Enter sin más, es «sí» (la letra mayúscula es la respuesta por defecto). «[y/N]» — Enter significa «no»; para decir «sí», escribe y y pulsa Enter. Si piden un número, Enter elige la primera opción. La contraseña no se ve al escribirla, es normal: escríbela y pulsa Enter." ;;
+    *)  msg="🐾 Lapa's tip: «[Y/n]» — just press Enter, that's «yes» (the capital letter is the default answer). «[y/N]» — Enter means «no»; to say «yes», type y and press Enter. Asked for a number — Enter picks the first option. The password stays invisible while you type it, that's normal: type it and press Enter." ;;
+esac
+printf '\e[38;2;127;240;240m%s\e[0m\n' "$msg"

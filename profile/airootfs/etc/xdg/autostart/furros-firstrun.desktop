@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FurrOS First Run
+Exec=/usr/local/bin/furros-firstrun
+Icon=furros
+NoDisplay=true
+X-KDE-autostart-phase=2
+X-GNOME-Autostart-Delay=2

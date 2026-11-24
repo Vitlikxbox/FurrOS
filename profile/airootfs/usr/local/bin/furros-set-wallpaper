@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Set the FurrOS wallpaper on whatever desktop is running, right now and for the next logins.
+#   furros-set-wallpaper PICTURE [VIDEO]
+# PICTURE is a still image (also the lock screen and login screen picture); VIDEO, if given, is a looping video
+# for the desktops that can play one (KDE with Smart Video Wallpaper; Hyprland, Sway, Niri, COSMIC via mpvpaper; i3, bspwm,
+# Awesome, Qtile via xwinwrap + mpv). Same per-desktop
+# logic as furros-firstrun. /usr/share/backgrounds/furros/current.png (the picture tiling desktops, hyprlock,
+# feh and the login screen read) is relinked through pkexec when it isn't writable.
+set -u
+WALL=$(readlink -f -- "${1:?usage: furros-set-wallpaper PICTURE [VIDEO]}")
+VIDEO=${2:-}
+[[ -n $VIDEO ]] && VIDEO=$(readlink -f -- "$VIDEO")
+[[ -f $WALL ]] || { echo "no such picture: $WALL" >&2; exit 2; }
+[[ -z $VIDEO || -f $VIDEO ]] || { echo "no such video: $VIDEO" >&2; exit 2; }
+CUR=/usr/share/backgrounds/furros/current.png
+# XDG_CURRENT_DESKTOP is unset in some sessions (Qtile, i3, Awesome): furros-desktop also checks the
+# session name and the running window manager (tester report 20.11)
+desk=$(furros-desktop 2>/dev/null || printf '%s' "${XDG_CURRENT_DESKTOP:-}")
+desk=${desk,,}
+q() { "$@" >/dev/null 2>&1; }
+
+# ---------------------------------------------------------------- the shared picture + the per-user video
+if [[ $(readlink -f "$CUR" 2>/dev/null) != "$WALL" ]]; then
+    if [[ -w $(dirname "$CUR") ]]; then ln -sf "$WALL" "$CUR"
+    else pkexec /usr/bin/ln -sf "$WALL" "$CUR" || { echo "not changed: no permission" >&2; exit 1; }
+    fi
+fi
+conf="${XDG_CONFIG_HOME:-$HOME/.config}/furros"
+mkdir -p "$conf"
+printf 'WALLPAPER=%s\nWALLPAPER_VIDEO=%s\n' "$CUR" "$VIDEO" > "$conf/wallpaper.conf"
+
+# ---------------------------------------------------------------- the video player, fetched when missing
+# The player is a prebuilt AUR package from [furros]. Installs made before the installer always added it (and
+# KDE ones where a live wallpaper wasn't picked during install) had none, so a live wallpaper silently stayed a
+# still picture (tester reports 22.11: KDE, COSMIC). Now it's installed right here; pkexec asks for the password
+case "$desk" in
+    *kde* | *plasma*) need=(plasma6-wallpapers-smart-video-wallpaper-reborn qt6-multimedia-ffmpeg) ;;
+    *hyprland* | *sway* | *niri* | *cosmic*) need=(mpvpaper mpv) ;;
+    *qtile* | *i3* | *bspwm* | *awesome*) need=(xwinwrap-git mpv) ;;
+    *) need=() ;;
+esac
+if [[ -n $VIDEO ]] && (( ${#need[@]} )); then
+    missing=()
+    for p in "${need[@]}"; do pacman -Qq "$p" >/dev/null 2>&1 || missing+=("$p"); done
+    if (( ${#missing[@]} )); then
+        echo "installing the live wallpaper player: ${missing[*]}"
+        if ! pkexec /usr/bin/pacman -S --noconfirm --needed "${missing[@]}" >&2; then
+            echo "live wallpaper player not installed (${missing[*]}): the still picture is used; furros-update retries" >&2
+        fi
+    fi
+fi
+
+gnome_like() {  # $1 = gsettings schema of the background
+    q gsettings set "$1" picture-uri "file://$WALL"
+    q gsettings set "$1" picture-uri-dark "file://$WALL"
+    q gsettings set "$1" picture-options zoom
+}
+
+# ---------------------------------------------------------------- apply now
+case "$desk" in
+*kde* | *plasma*)
+    plugin=luisbocanegra.smart.video.wallpaper.reborn
+    if [[ -n $VIDEO && -d /usr/share/plasma/wallpapers/$plugin ]]; then
+        urls="[{\\\"filename\\\":\\\"file://$VIDEO\\\",\\\"enabled\\\":true,\\\"loop\\\":true}]"
+        js="for (const d of desktops()) { d.wallpaperPlugin = \"$plugin\"; d.currentConfigGroup = [\"Wallpaper\", \"$plugin\", \"General\"]; d.writeConfig(\"VideoUrls\", \"$urls\"); d.writeConfig(\"FillMode\", 2); }"
+    else
+        js="for (const d of desktops()) { d.wallpaperPlugin = \"org.kde.image\"; d.currentConfigGroup = [\"Wallpaper\", \"org.kde.image\", \"General\"]; d.writeConfig(\"Image\", \"file://$WALL\"); }"
+    fi
+    q dbus-send --session --print-reply --dest=org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "string:$js"
+    q kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image \
+        --group General --key Image "file://$WALL"
+    ;;
+*gnome* | *budgie*)
+    gnome_like org.gnome.desktop.background
+    q gsettings set org.gnome.desktop.screensaver picture-uri "file://$WALL"
+    ;;
+*cinnamon*) gnome_like org.cinnamon.desktop.background ;;
+*mate*)
+    q gsettings set org.mate.background picture-filename "$WALL"
+    q gsettings set org.mate.background picture-options zoom
+    ;;
+*xfce*)
+    for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep -E 'last-image$'); do
+        q xfconf-query -c xfce4-desktop -p "$p" -s "$WALL"
+    done
+    q xfdesktop --reload
+    ;;
+*lxqt*) q pcmanfm-qt --set-wallpaper "$WALL" --wallpaper-mode stretch ;;
+*deepin* | *dde*)
+    q busctl --user call org.deepin.dde.Appearance1 /org/deepin/dde/Appearance1 \
+        org.deepin.dde.Appearance1 SetCurrentWorkspaceBackground s "file://$WALL"
+    ;;
+*cosmic*)
+    bg="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
+    mkdir -p "$bg"
+    printf '(output: "all", source: Path("%s"), filter_by_theme: true, rotation_frequency: 300, filter_method: Lanczos, scaling_mode: Zoom, sampling_method: Alphanumeric)\n' "$WALL" > "$bg/all"
+    # the video plays on top of that picture via mpvpaper (furros-wallpaper; it also starts at login through
+    # /etc/xdg/autostart/furros-wallpaper-cosmic.desktop). A still picture: stop the old video
+    q pkill -x furros-wallpaper
+    q pkill -x mpvpaper
+    [[ -n $VIDEO ]] && setsid -f furros-wallpaper >/dev/null 2>&1
+    ;;
+*hyprland* | *sway* | *niri*)
+    # furros-wallpaper reads ~/.config/furros/wallpaper.conf: restart it detached from this process
+    q pkill -x furros-wallpaper
+    q pkill -x swaybg
+    q pkill -x mpvpaper
+    setsid -f furros-wallpaper >/dev/null 2>&1
+    ;;
+*qtile* | *i3* | *bspwm* | *awesome*)
+    # the X11 tiling desktops: furros-wallpaper puts the picture on with feh and plays the video with xwinwrap + mpv
+    [[ $desk == *qtile* ]] && q qtile cmd-obj -o screen -f set_wallpaper -a "$WALL" fill
+    q pkill -x furros-wallpaper
+    q pkill -x xwinwrap
+    setsid -f furros-wallpaper >/dev/null 2>&1
+    ;;
+*)
+    command -v feh >/dev/null && q feh --bg-fill "$WALL"
+    ;;
+esac
+echo "wallpaper: $WALL${VIDEO:+ (video: $VIDEO)}"

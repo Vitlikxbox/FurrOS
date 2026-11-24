@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+"""FurrOS: make a Deepin (DDE) session without a window manager visible instead of silently broken.
+
+DDE starts its window manager from the user unit dde-session@x11.service (`kwin_x11 --replace`, Restart=always,
+3 tries in 15 s). If kwin can't start — e.g. deepin-kwin built against an older kscreenlocker/kglobalacceld
+("symbol lookup error", tester report 2026-11-18) — the unit ends in start-limit-hit and the rest of the session
+keeps running with no WM: tiny unmanaged windows, grey boxes on the dock, no Alt+F4/Alt+Tab, no message.
+
+Runs from
+  * dde-session@x11.service.d/furros-wm-guard.conf  (OnFailure=: right when kwin gives up), and
+  * dde-session-core.target                          (a late check for any other cause).
+  furros-dde-wm-guard           wait for a WM; if none: one more kwin start, then a dialog + log
+  furros-dde-wm-guard --check   print the state as JSON, exit 0 = a WM manages the session (used by tests)
+Log: ~/.cache/furros/dde-wm.log
+"""
+import ctypes
+import ctypes.util
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+LOG = Path.home() / ".cache/furros/dde-wm.log"
+LOCK = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "furros-dde-wm-guard.lock"
+
+
+# ------------------------------------------------------------------ X11: is there a window manager? (EWMH)
+def wm_name():
+    """Name of the EWMH window manager, or None. A WM sets _NET_SUPPORTING_WM_CHECK on the root window to a child
+    window that carries the same property and _NET_WM_NAME."""
+    try:
+        x = ctypes.CDLL(ctypes.util.find_library("X11") or "libX11.so.6")
+    except OSError:
+        return None
+    vp, ul, ci = ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int
+    x.XOpenDisplay.argtypes, x.XOpenDisplay.restype = [ctypes.c_char_p], vp
+    x.XDefaultRootWindow.argtypes, x.XDefaultRootWindow.restype = [vp], ul
+    x.XInternAtom.argtypes, x.XInternAtom.restype = [vp, ctypes.c_char_p, ci], ul
+    x.XGetWindowProperty.argtypes = [vp, ul, ul, ctypes.c_long, ctypes.c_long, ci, ul, ctypes.POINTER(ul),
+                                     ctypes.POINTER(ci), ctypes.POINTER(ul), ctypes.POINTER(ul), ctypes.POINTER(vp)]
+    x.XFree.argtypes = [vp]
+    x.XCloseDisplay.argtypes = [vp]
+    x.XSetErrorHandler.argtypes = [vp]
+    handler = ctypes.CFUNCTYPE(ci, vp, vp)(lambda d, e: 0)      # a stale check window must not kill us (BadWindow)
+    x.XSetErrorHandler(ctypes.cast(handler, vp))
+    d = x.XOpenDisplay(None)
+    if not d:
+        return None
+
+    def prop(win, name, kind):
+        t, f, n, rest, data = ul(), ci(), ul(), ul(), vp()
+        a = x.XInternAtom(d, name, 0)
+        if x.XGetWindowProperty(d, win, a, 0, 1024, 0, kind, ctypes.byref(t), ctypes.byref(f), ctypes.byref(n),
+                                ctypes.byref(rest), ctypes.byref(data)) != 0 or not data or n.value == 0:
+            return None
+        try:
+            if f.value == 32:
+                return ctypes.cast(data, ctypes.POINTER(ul))[0]
+            return ctypes.string_at(data, n.value).decode("utf-8", "replace")
+        finally:
+            x.XFree(data)
+    try:
+        root = x.XDefaultRootWindow(d)
+        win_atom = x.XInternAtom(d, b"WINDOW", 0)
+        check = prop(root, b"_NET_SUPPORTING_WM_CHECK", win_atom)
+        if not check or prop(check, b"_NET_SUPPORTING_WM_CHECK", win_atom) != check:
+            return None
+        return prop(check, b"_NET_WM_NAME", x.XInternAtom(d, b"UTF8_STRING", 0)) or "unknown"
+    finally:
+        x.XCloseDisplay(d)
+
+
+def sh(cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=15).stdout.strip()
+    except Exception:
+        return ""
+
+
+def state():
+    kwin = sh(["pgrep", "-u", str(os.getuid()), "-x", "kwin_x11"]).split()
+    age = None
+    if kwin:
+        try:
+            age = int(sh(["ps", "-o", "etimes=", "-p", kwin[0]]) or 0)
+        except ValueError:
+            pass
+    # this boot's user journal: a --since from `systemctl show` ("Thu 2026-11-19 10:00:00 MSK") may not parse, and a
+    # failed journalctl would look like "no errors"
+    jargs = ["journalctl", "--user", "-b", "--no-pager", "-q", "-o", "cat"]
+    errors = [l for l in sh(jargs).splitlines() if "symbol lookup error" in l or
+              ("com.deepin.wm" in l and "unknown unit" in l)][-5:]
+    return {"wm": wm_name(), "kwin_pid": int(kwin[0]) if kwin else None, "kwin_age_s": age,
+            "dde_session_x11": sh(["systemctl", "--user", "is-active", "dde-session@x11.service"]) or "unknown",
+            "errors": errors}
+
+
+# ------------------------------------------------------------------ the dialog
+TEXT = {
+    "ru": ("Оконный менеджер Deepin не запустился",
+           "Без него окна не двигаются, не закрываются и могут стать крошечными.\n\n"
+           "Чаще всего так бывает после обновления, когда часть пакетов уже новая, а часть ещё старая. "
+           "Нажми «Обновить систему» — это обычно чинит. Если не помогло, выйди и на экране входа выбери "
+           "другую оболочку, а нам пришли файл ~/.cache/furros/dde-wm.log.",
+           "Обновить систему", "Выйти из сеанса", "Закрыть"),
+    "pl": ("Menedżer okien Deepin się nie uruchomił",
+           "Bez niego okien nie da się przesuwać ani zamykać i mogą być malutkie.\n\n"
+           "Zwykle zdarza się to po aktualizacji, gdy część pakietów jest już nowa, a część jeszcze stara. "
+           "Kliknij „Zaktualizuj system” — to zwykle pomaga. Jeśli nie, wyloguj się, wybierz inne środowisko "
+           "na ekranie logowania i wyślij nam plik ~/.cache/furros/dde-wm.log.",
+           "Zaktualizuj system", "Wyloguj", "Zamknij"),
+    "es": ("El gestor de ventanas de Deepin no se inició",
+           "Sin él las ventanas no se mueven ni se cierran y pueden quedar diminutas.\n\n"
+           "Suele pasar tras una actualización, cuando unos paquetes ya son nuevos y otros aún viejos. "
+           "Pulsa «Actualizar el sistema»: normalmente lo arregla. Si no, cierra la sesión, elige otro escritorio "
+           "en la pantalla de inicio y envíanos el archivo ~/.cache/furros/dde-wm.log.",
+           "Actualizar el sistema", "Cerrar sesión", "Cerrar"),
+    "en": ("The Deepin window manager did not start",
+           "Without it windows can't be moved or closed and may end up tiny.\n\n"
+           "This usually happens after an update when some packages are already new and others still old. "
+           "Press “Update the system” — that normally fixes it. If it doesn't, log out, pick another desktop "
+           "on the login screen and send us ~/.cache/furros/dde-wm.log.",
+           "Update the system", "Log out", "Close"),
+}
+
+
+def lang():
+    for v in ("LC_ALL", "LC_MESSAGES", "LANG"):
+        code = os.environ.get(v, "")[:2]
+        if code:
+            return code if code in TEXT else "en"
+    return "en"
+
+
+def terminal_cmd(command):
+    for term, flag in (("deepin-terminal", "-e"), ("alacritty", "-e"), ("konsole", "-e"), ("xterm", "-e")):
+        if shutil.which(term):
+            return [term, flag, "bash", "-c", command + "; echo; read -rp '⏎ '"]
+    return None
+
+
+def dialog():
+    title, body, b_update, b_logout, b_close = TEXT[lang()]
+    try:
+        from PySide6.QtCore import Qt
+        from PySide6.QtWidgets import QApplication, QMessageBox
+    except ImportError:
+        for tool in (["notify-send", "-u", "critical", "-a", "FurrOS", title, body], ["xmessage", "-center", f"{title}\n\n{body}"]):
+            if shutil.which(tool[0]):
+                subprocess.Popen(tool)
+                return
+        return
+    app = QApplication(sys.argv[:1])
+    box = QMessageBox()
+    box.setIcon(QMessageBox.Icon.Critical)
+    box.setWindowTitle("FurrOS")
+    box.setText(f"<b>{title}</b>")
+    box.setInformativeText(body)
+    upd = box.addButton(b_update, QMessageBox.ButtonRole.AcceptRole)
+    out = box.addButton(b_logout, QMessageBox.ButtonRole.DestructiveRole)
+    box.addButton(b_close, QMessageBox.ButtonRole.RejectRole)
+    # no window manager = nobody places or raises the window: keep it on top and centre it ourselves
+    box.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+    box.adjustSize()
+    geo = app.primaryScreen().availableGeometry()
+    box.move(geo.center() - box.rect().center())
+    box.exec()
+    if box.clickedButton() is upd:
+        cmd = terminal_cmd("furros-update")
+        if cmd:
+            subprocess.Popen(cmd, start_new_session=True)
+    elif box.clickedButton() is out:
+        sid = os.environ.get("XDG_SESSION_ID")
+        subprocess.run(["loginctl", "terminate-session", sid] if sid else ["loginctl", "terminate-user", str(os.getuid())])
+
+
+def log(msg):
+    LOG.parent.mkdir(parents=True, exist_ok=True)
+    with LOG.open("a") as f:
+        f.write(time.strftime("%F %T ") + msg + "\n")
+
+
+def main():
+    if "--check" in sys.argv:
+        s = state()
+        print(json.dumps(s, ensure_ascii=False))
+        sys.exit(0 if s["wm"] else 1)
+    if not os.environ.get("DISPLAY"):
+        sys.exit(0)                                            # Wayland / no X: nothing to check here
+    try:                                                       # both triggers may fire: show one dialog only
+        fd = os.open(LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.close(fd)
+    except FileExistsError:
+        sys.exit(0)
+    try:
+        for _ in range(25):                                    # the session is still starting up
+            if wm_name():
+                return
+            time.sleep(1)
+        s = state()
+        log("no window manager: " + json.dumps(s, ensure_ascii=False))
+        # one manual try: covers a WM that only lost a race at login; a broken build fails again right away
+        if shutil.which("kwin_x11"):
+            subprocess.Popen(["kwin_x11", "--replace"], stdout=subprocess.DEVNULL, stderr=LOG.open("a"),
+                             start_new_session=True)
+            for _ in range(8):
+                time.sleep(1)
+                if wm_name():
+                    log("kwin_x11 started on the second try")
+                    return
+        log("still no window manager, showing the dialog")
+        dialog()
+    finally:
+        LOCK.unlink(missing_ok=True)
+
+
+if __name__ == "__main__":
+    main()

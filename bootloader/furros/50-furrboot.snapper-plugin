@@ -1,0 +1,9 @@
+#!/bin/sh
+# snapper plugin (snapper(8), PLUGINS): install as /usr/lib/snapper/plugins/50-furrboot.
+# Arguments: action, subvolume, filesystem type, snapshot number. Plugins must finish within seconds and copying
+# kernels can take longer, so the menu is rebuilt by a service in the background.
+case "$1" in
+    create-snapshot-post|delete-snapshot-post|modify-snapshot-post)
+        [ "$2" = / ] && systemctl start --no-block furrboot-update.service ;;
+esac
+exit 0

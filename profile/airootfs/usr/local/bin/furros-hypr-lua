@@ -1,0 +1,33 @@
+#!/bin/bash
+# furros-hypr-lua: Hyprland 0.57 reads only ~/.config/hypr/hyprland.lua; the old hyprland.conf is ignored
+# (https://hypr.land/news/update57/), so a FurrOS Hyprland installed from an older ISO starts without its keys,
+# panel, wallpaper and keyboard layouts after an update. For every user who has hyprland.conf but no
+# hyprland.lua, this puts the FurrOS Lua config next to it, with the layouts chosen in the installer.
+# hyprland.conf stays untouched (the user's own changes can be carried over by hand).
+# Run by the pacman hook 61-furros-hyprland-lua.hook; safe to run again (it never overwrites hyprland.lua).
+set -u
+SKEL=/usr/share/furros/skel/hyprland/.config/hypr/hyprland.lua
+[ -f "$SKEL" ] || exit 0
+LAYOUTS=us,ru; VARIANTS=; TOGGLE=grp:alt_shift_toggle
+[ -r /etc/furros/keyboard.conf ] && . /etc/furros/keyboard.conf
+for home in /home/*; do
+    d=$home/.config/hypr
+    # FurrOS Lua configs from before 13.11.2026: new windows opened maximized over the others (Firefox, Telegram…)
+    if [ -f "$d/hyprland.lua" ] && grep -q 'FurrOS · Hyprland' "$d/hyprland.lua" && ! grep -q suppress-maximize-events "$d/hyprland.lua"; then
+        { echo; sed -n '/^-- apps like Firefox/,$p' "$SKEL"; } >> "$d/hyprland.lua"
+        echo "furros: $home: Hyprland — new windows no longer cover the others"
+    fi
+    [ -f "$d/hyprland.conf" ] && [ ! -e "$d/hyprland.lua" ] || continue
+    owner=$(stat -c %U:%G "$home")
+    install -o "${owner%%:*}" -g "${owner##*:}" -m 644 "$SKEL" "$d/hyprland.lua"
+    if [ ! -e "$home/.config/furros/keyboard-hypr.lua" ]; then
+        install -d -o "${owner%%:*}" -g "${owner##*:}" "$home/.config/furros"
+        printf 'hl.config({ input = { kb_layout = "%s", kb_options = "%s" } })\n' "$LAYOUTS" "$TOGGLE" \
+            > "$home/.config/furros/keyboard-hypr.lua"
+        chown "$owner" "$home/.config/furros/keyboard-hypr.lua"
+    fi
+    # Super+Space switches the layout: the app menu stays on Super+D only (same as the installer does)
+    [ "$TOGGLE" = grp:win_space_toggle ] && sed -i '/^hl\.bind(mod \.\. " + Space"/d' "$d/hyprland.lua"
+    echo "furros: $home: Hyprland 0.57 reads only hyprland.lua — the FurrOS one is in place (hyprland.conf kept)"
+done
+exit 0

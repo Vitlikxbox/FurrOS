@@ -1,0 +1,12 @@
+[Unit]
+Description=Create the FurrOS live user
+Before=display-manager.service systemd-user-sessions.service
+After=systemd-sysusers.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/furros-liveuser
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

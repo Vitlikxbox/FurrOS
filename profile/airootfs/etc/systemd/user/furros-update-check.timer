@@ -1,0 +1,10 @@
+[Unit]
+Description=FurrOS: check for updates once a day
+
+[Timer]
+OnStartupSec=10min
+OnUnitActiveSec=1d
+Persistent=true
+
+[Install]
+WantedBy=timers.target

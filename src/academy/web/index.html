@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Школа Лапы</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="app">
+  <aside id="side" aria-label="Chapters">
+    <div class="brand">
+      <img id="brand-logo" alt="">
+      <div>
+        <div class="brand-title" id="t-school">Школа Лапы</div>
+        <div class="brand-sub" id="t-sub">FurrOS</div>
+      </div>
+    </div>
+    <div class="overall" aria-live="polite">
+      <div class="bar"><div id="overall-fill"></div></div>
+      <div id="overall-text" class="dim"></div>
+    </div>
+    <nav id="chapters"></nav>
+    <div class="side-foot">
+      <label class="dim" for="lang">🌐</label>
+      <select id="lang" aria-label="Language">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+        <option value="pl">Polski</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="content/ru.js"></script>
+<script src="content/en.js"></script>
+<script src="content/pl.js"></script>
+<script src="content/es.js"></script>
+<script src="content/ru.levels.js"></script>
+<script src="content/en.levels.js"></script>
+<script src="content/pl.levels.js"></script>
+<script src="content/es.levels.js"></script>
+<script src="keys.js"></script>
+<script src="terminal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

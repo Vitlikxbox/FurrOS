@@ -1,0 +1,2 @@
+#!/bin/sh
+exec python3 /usr/lib/furros/installer/furros_installer.py "$@"

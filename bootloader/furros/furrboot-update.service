@@ -1,0 +1,9 @@
+[Unit]
+Description=Update the FurrBoot boot menu
+Documentation=file:///usr/share/doc/furrboot/README.md
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/furrboot-update
+Nice=10
+IOSchedulingClass=idle

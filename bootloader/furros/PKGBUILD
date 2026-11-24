@@ -1,0 +1,33 @@
+# FurrBoot: the FurrOS boot menu (UEFI). Build furrboot.efi first (bootloader/furrboot: cargo build --release
+# --target x86_64-unknown-uefi) and put it next to this file; the Rust UEFI target isn't in Arch's toolchain.
+pkgname=furrboot
+pkgver=0.2.0
+pkgrel=6
+pkgdesc="FurrBoot: the FurrOS boot menu (UEFI; Limine in FurrOS colours on BIOS) and the tools that keep it up to date"
+arch=(x86_64)
+url="https://furros.xyz"
+license=(GPL-3.0-or-later)  # btrfs_x64.efi: efifs 1.13, GPL-3.0 (https://github.com/pbatard/efifs)
+depends=(bash efibootmgr systemd coreutils util-linux)
+optdepends=('snapper: snapshots in the boot menu' 'btrfs-progs: snapshots in the boot menu'
+            'limine: boot menu on PCs without UEFI (furrboot-install --bios)')
+options=(!strip !debug)
+install=furrboot.install
+source=(furrboot.efi furrboot-update furrboot-install furrboot-theme 95-furrboot.hook 96-furrboot-limine.hook 50-furrboot.snapper-plugin furrboot-update.service
+        btrfs_x64.efi efifs-LICENSE limine-furros.png README.md)
+sha256sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP
+            1712f61541cc4b308c9cbafe3361b7769d124ed430fb25337a05bb1b30df3862 SKIP SKIP SKIP)
+
+package() {
+    install -Dm644 furrboot.efi "$pkgdir/usr/lib/furrboot/furrboot.efi"
+    install -Dm755 furrboot-update "$pkgdir/usr/bin/furrboot-update"
+    install -Dm755 furrboot-install "$pkgdir/usr/bin/furrboot-install"
+    install -Dm755 furrboot-theme "$pkgdir/usr/bin/furrboot-theme"
+    install -Dm644 95-furrboot.hook "$pkgdir/usr/share/libalpm/hooks/95-furrboot.hook"
+    install -Dm644 96-furrboot-limine.hook "$pkgdir/usr/share/libalpm/hooks/96-furrboot-limine.hook"
+    install -Dm755 50-furrboot.snapper-plugin "$pkgdir/usr/lib/snapper/plugins/50-furrboot"
+    install -Dm644 furrboot-update.service "$pkgdir/usr/lib/systemd/system/furrboot-update.service"
+    install -Dm644 btrfs_x64.efi "$pkgdir/usr/lib/furrboot/drivers/btrfs_x64.efi"
+    install -Dm644 efifs-LICENSE "$pkgdir/usr/share/licenses/furrboot/efifs-LICENSE"
+    install -Dm644 limine-furros.png "$pkgdir/usr/lib/furrboot/limine/furros.png"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/furrboot/README.md"
+}

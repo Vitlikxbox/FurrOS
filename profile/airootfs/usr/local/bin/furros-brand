@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Re-applies FurrOS identity after package updates (called from a pacman hook).
+set -u
+
+write_os_release() {
+    cat > "$1" <<'EOF'
+NAME="FurrOS"
+PRETTY_NAME="FurrOS 1.0"
+ID=furros
+ID_LIKE=arch
+VERSION="1.0"
+VERSION_ID=1.0
+BUILD_ID=rolling
+ANSI_COLOR="38;2;127;240;240"
+HOME_URL="https://furros.xyz/"
+DOCUMENTATION_URL="https://furros.xyz/"
+SUPPORT_URL="https://discord.gg/ZA3GuBYKwG"
+BUG_REPORT_URL="https://github.com/Vitlikxbox/FurrOS/issues"
+LOGO=furros
+EOF
+}
+
+write_os_release /usr/lib/os-release
+rm -f /etc/os-release
+write_os_release /etc/os-release
+
+cat > /etc/issue <<'EOF'
+\e[38;2;127;240;240m  FurrOS\e[0m 1.0  \r  (\l)
+  ~ arch-based, good dogs only ~
+
+EOF
+
+if [[ -f /etc/bash.bashrc ]] && ! grep -q furros /etc/bash.bashrc; then
+    printf '\n[[ -f /etc/furros/bashrc ]] && . /etc/furros/bashrc\n' >> /etc/bash.bashrc
+fi
+
+for rc in /etc/skel/.bashrc /home/*/.bashrc; do
+    [[ -f $rc ]] && ! grep -q furros "$rc" && printf '
+[[ -f /etc/furros/bashrc ]] && . /etc/furros/bashrc
+' >> "$rc"
+done
+
+# lsb_release: show FurrOS, but keep DISTRIB_ID=Arch so Arch-detecting software still works
+if [[ -f /etc/lsb-release ]]; then
+    sed -i 's/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION="FurrOS 1.0"/' /etc/lsb-release
+fi
+
+# Deepin shows this name, site and logo on its login/lock screen and in "About"
+if [[ -f /usr/share/deepin/distribution.info ]]; then
+    cat > /usr/share/deepin/distribution.info <<'EOF'
+[Distribution]
+Name=FurrOS
+WebsiteName=furros.xyz
+Website=https://furros.xyz/
+Logo=/usr/share/pixmaps/furros.png
+LogoLight=/usr/share/pixmaps/furros.png
+LogoTransparent=/usr/share/pixmaps/furros.png
+EOF
+fi
+
+if [[ -d /etc/plymouth ]]; then
+    printf '[Daemon]\nTheme=furros\nShowDelay=0\n' > /etc/plymouth/plymouthd.conf
+fi
+
+if [[ -f /etc/default/grub ]]; then
+    sed -i 's/^GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="FurrOS"/' /etc/default/grub
+fi
+exit 0

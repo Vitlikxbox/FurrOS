@@ -1,0 +1,8 @@
+[Sound Theme]
+Name=FurrOS
+Comment=FurrOS system sounds (soft marimba chimes)
+Inherits=freedesktop
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo

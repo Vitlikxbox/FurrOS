@@ -1,0 +1,16 @@
+# A new furrboot.efi reaches the boot partition only through furrboot-install. Upgrades refresh a FurrBoot that is
+# already installed; installing it the first time is the FurrOS installer's job (it knows where the ESP is), so a
+# system still booting with another loader is never switched over by a package upgrade.
+# BIOS PCs (Limine): the menu is rewritten, so a newer furrboot-update's limine.conf takes effect right away.
+post_upgrade() {
+    for d in /boot/efi /efi /boot; do
+        if [ -f "$d/limine/limine-bios.sys" ]; then
+            usr/bin/furrboot-update || echo "furrboot: run 'sudo furrboot-update' to update the boot menu"
+            return 0
+        fi
+    done
+    esp=$(usr/bin/bootctl --print-esp-path 2>/dev/null) || return 0
+    if [ -n "$(find "$esp" -maxdepth 3 -ipath '*/efi/furros/furrboot.efi' -print -quit 2>/dev/null)" ]; then
+        usr/bin/furrboot-install --no-nvram || echo "furrboot: run 'sudo furrboot-install' to update the boot menu"
+    fi
+}

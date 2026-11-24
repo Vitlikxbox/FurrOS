@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Lapa's School
+Name[ru]=Школа Лапы
+Name[pl]=Szkoła Łapy
+Name[es]=Escuela de Lapa
+Comment=Learn how to use FurrOS
+Comment[ru]=Учимся пользоваться FurrOS
+Comment[pl]=Naucz się korzystać z FurrOS
+Comment[es]=Aprende a usar FurrOS
+Exec=furros-academy
+Icon=furros
+Terminal=false
+Categories=Education;
+Keywords=help;tutorial;furros;lapa;
+StartupWMClass=furros-academy

@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+# FurrOS update center: one command updates everything (pacman, AUR, Flatpak) with a snapshot first.
+#   furros-update           update now (asks before installing)
+#   furros-update --check   print how many updates are waiting (used by the login reminder)
+#   furros-update --notify  desktop notification if updates are waiting
+set -uo pipefail
+c() { printf '\e[38;2;127;240;240m🐾 %s\e[0m\n' "$*"; }
+# the language chosen in the installer (UI_LANG), else $LANG; say RU EN [PL ES] (EN when a language is missing)
+L=$(sed -n 's/^UI_LANG=//p' /etc/furros/settings.conf 2>/dev/null); [[ -n $L ]] || L=${LANG:0:2}
+say() { case $L in ru) echo "$1" ;; pl) echo "${3:-$2}" ;; es) echo "${4:-$2}" ;; *) echo "$2" ;; esac; }
+
+count() {
+    local n=0
+    n=$(checkupdates 2>/dev/null | wc -l)
+    if command -v yay >/dev/null; then n=$((n + $(yay -Qua 2>/dev/null | wc -l))); fi
+    if command -v flatpak >/dev/null; then
+        n=$((n + $(flatpak remote-ls --updates --columns=application 2>/dev/null | grep -c .)))
+    fi
+    echo "$n"
+}
+
+case ${1:-} in
+--check)
+    count
+    exit 0 ;;
+--notify)
+    n=$(count)
+    if (( n > 0 )); then
+        notify-send -a FurrOS -i furros "$(say "Доступно обновлений: $n" "$n updates available" "Dostępne aktualizacje: $n" "Actualizaciones disponibles: $n")" \
+            "$(say "Открой терминал и выполни furros-update — Лапа всё обновит, а перед этим сделает снимок системы." \
+                   "Open a terminal and run furros-update: Lapa updates everything and takes a system snapshot first." \
+                   "Otwórz terminal i wpisz furros-update: Łapa wszystko zaktualizuje, a najpierw zrobi migawkę systemu." \
+                   "Abre una terminal y ejecuta furros-update: Lapa lo actualiza todo y antes hace una instantánea del sistema.")"
+    fi
+    exit 0 ;;
+-h|--help)
+    sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0 ;;
+esac
+
+c "$(say "Центр обновлений FurrOS" "FurrOS update center" "Centrum aktualizacji FurrOS" "Centro de actualizaciones de FurrOS")"
+# what to answer when pacman or yay asks something, and that the password stays invisible
+command -v furros-pacman-hint >/dev/null && furros-pacman-hint
+# every kernel FurrOS can boot (linux-furros is the main one): any of them updated -> ask for a reboot
+KERNELS=(linux-furros linux linux-lts linux-zen)
+kernel_before=$(pacman -Q "${KERNELS[@]}" 2>/dev/null)
+if pacman -Q snap-pac >/dev/null 2>&1; then
+    say "Перед обновлением автоматически сделается снимок системы — если что-то сломается, откатишься из меню загрузки." \
+        "A system snapshot is taken automatically before updating: if something breaks, roll back from the boot menu." \
+        "Przed aktualizacją automatycznie powstanie migawka systemu — jeśli coś się zepsuje, wrócisz z menu startowego." \
+        "Antes de actualizar se hace una instantánea automática: si algo se rompe, vuelves atrás desde el menú de arranque."
+fi
+c "$(say "Системные пакеты (pacman)" "System packages (pacman)" "Pakiety systemowe (pacman)" "Paquetes del sistema (pacman)")"
+# a lock left behind by an update that was cut off (power loss, closed terminal) blocks every later one with
+# "unable to lock database": remove it, but only when no pacman is actually running
+if [[ -e /var/lib/pacman/db.lck ]] && ! pgrep -x pacman >/dev/null; then
+    say "Нашёл замок от прерванного обновления — убираю его." "Found a lock left by an interrupted update, removing it." \
+        "Znalazłem blokadę po przerwanej aktualizacji — usuwam ją." "Encontré un bloqueo de una actualización interrumpida, lo quito."
+    sudo rm -f /var/lib/pacman/db.lck
+fi
+# keys first: after a long break the old keyring can't verify packages signed with newer keys
+# ("invalid or corrupted package (PGP signature)") — the fix the Arch wiki gives, done up front
+sudo pacman -Sy --needed --noconfirm archlinux-keyring furros-keyring >/dev/null \
+    || say "Не получилось обновить ключи — попробую обновиться как есть." "Couldn't refresh the keys, trying the update anyway." \
+           "Nie udało się odświeżyć kluczy — spróbuję zaktualizować mimo to." "No se pudieron renovar las claves, intento actualizar igualmente."
+# download first, install second: a slow or out-of-sync mirror makes pacman drop a file ("failed retrieving
+# file", "Operation too slow") and abort the whole update, and a second run only fetches what is missing. So fetch
+# everything into the cache (-w installs nothing) up to 4 times, starting from the next mirror on every retry
+for try in 1 2 3 4; do
+    sudo pacman -Syuw --noconfirm && break
+    (( try == 4 )) && break
+    say "Не все пакеты скачались (медленное зеркало) — докачиваю, попытка $((try + 1)) из 4." \
+        "Some packages didn't download (slow mirror), fetching the rest, attempt $((try + 1)) of 4." \
+        "Nie wszystkie pakiety się pobrały (wolny serwer lustrzany) — dociągam, próba $((try + 1)) z 4." \
+        "No se descargaron todos los paquetes (espejo lento), descargo el resto, intento $((try + 1)) de 4."
+    # move the first mirror to the end, like the installer does
+    sudo sed -i '0,/^Server/{/^Server/{h;d}};${G}' /etc/pacman.d/mirrorlist
+    sleep 3
+done
+sudo pacman -Su || { say "pacman завершился с ошибкой — дальше не иду." "pacman failed, stopping here." \
+    "pacman zakończył się błędem — dalej nie idę." "pacman falló, me detengo aquí."; exit 1; }
+# FurrOS rebuilds of Arch packages that Arch left broken (old name -> ours). `replaces=` alone does not do it here:
+# pacman only looks for a replacement in repositories ABOVE the one that still carries the old name, and [furros]
+# sits after [extra] (tested 19.11: -Syu said "nothing to do"). So swap them explicitly: fetch ours first, then drop
+# the Arch package without touching what depends on it and install ours, which provides the same name.
+#   deepin-kwin 6.0.8-12 vs kscreenlocker/kglobalacceld 6.8: Deepin starts with no window manager (18.11)
+for pair in "deepin-kwin furros-deepin-kwin"; do
+    old=${pair% *} new=${pair#* }
+    # -Qq by exact name: `pacman -Q deepin-kwin` also answers with a package that only provides it (ours)
+    pacman -Qq "$old" 2>/dev/null | grep -qx "$old" && pacman -Si "$new" >/dev/null 2>&1 || continue
+    c "$(say "Меняю $old на исправленный $new от FurrOS" "Replacing $old with the fixed $new from FurrOS" \
+          "Zamieniam $old na poprawiony $new od FurrOS" "Cambio $old por el $new corregido de FurrOS")"
+    if sudo pacman -Sw --noconfirm "$new"; then
+        sudo pacman -Rdd --noconfirm "$old" && sudo pacman -S --noconfirm "$new" \
+            || { say "Не получилось — возвращаю $old." "That failed, putting $old back." "Nie wyszło — przywracam $old." \
+                     "No funcionó, vuelvo a poner $old."; sudo pacman -S --noconfirm --needed "$old"; }
+    fi
+done
+# Installers before 19.11 wrote LIBGL_ALWAYS_SOFTWARE=1 into /etc/environment for Hyprland/Sway/Niri also on real
+# hardware (systemd-detect-virt prints "none" there, which the check took for a VM): every app drew on the CPU.
+# Remove those two lines; inside a VM keep the behaviour through the per-login check (furros-vm-graphics), which
+# also lets QEMU/GNOME Boxes with virgl use the GPU
+if grep -qx 'LIBGL_ALWAYS_SOFTWARE=1' /etc/environment 2>/dev/null && grep -qx 'QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu' /etc/environment; then
+    if v=$(systemd-detect-virt --vm 2>/dev/null); then
+        echo "$v" | sudo tee /etc/furros/vm-software-gl >/dev/null
+    else
+        c "$(say "Включаю видеокарту для программ (раньше они рисовали процессором) — перелогинься" \
+              "Turning the graphics card back on for apps (they were drawing on the CPU): log out and back in" \
+              "Włączam kartę graficzną dla programów (rysowały procesorem) — zaloguj się ponownie" \
+              "Activo la tarjeta gráfica para las apps (dibujaban con el procesador): vuelve a iniciar sesión")"
+    fi
+    sudo sed -i '/^LIBGL_ALWAYS_SOFTWARE=1$/d; /^QTWEBENGINE_CHROMIUM_FLAGS=--disable-gpu$/d' /etc/environment
+fi
+# the player a chosen live wallpaper needs (prebuilt AUR packages from [furros]). Systems installed when the
+# installer didn't add it kept a still picture with no hint why (tester report 19.11: i3/bspwm/Awesome/Qtile
+# without xwinwrap). Only when a video wallpaper is actually set for this user or system-wide
+vid=$( (. /etc/furros/settings.conf 2>/dev/null; f=${XDG_CONFIG_HOME:-$HOME/.config}/furros/wallpaper.conf
+        [[ -f $f ]] && . "$f"; echo "${WALLPAPER_VIDEO:-}") )
+desk=$(sed -n 's/^DESKTOP=//p' /etc/furros/settings.conf 2>/dev/null)
+case $desk in
+    i3|bspwm|awesome|qtile) need=(xwinwrap-git mpv) ;;
+    hyprland|sway|niri|cosmic) need=(mpvpaper mpv) ;;
+    kde) need=(plasma6-wallpapers-smart-video-wallpaper-reborn qt6-multimedia-ffmpeg) ;;
+    *) need=() ;;
+esac
+if [[ -n $vid ]] && (( ${#need[@]} )); then
+    missing=()
+    for p in "${need[@]}"; do pacman -Qq "$p" >/dev/null 2>&1 || missing+=("$p"); done
+    if (( ${#missing[@]} )); then
+        c "$(say "Ставлю то, без чего живые обои не двигаются: ${missing[*]}" "Installing what live wallpapers need to move: ${missing[*]}" \
+              "Instaluję to, bez czego żywe tapety się nie ruszają: ${missing[*]}" "Instalo lo que necesitan los fondos animados: ${missing[*]}")"
+        sudo pacman -S --noconfirm --needed "${missing[@]}" \
+            && say "Перелогинься — обои оживут." "Log out and back in: the wallpaper will come alive." \
+                   "Wyloguj się i zaloguj ponownie — tapeta ożyje." "Cierra sesión y vuelve a entrar: el fondo cobrará vida."
+    fi
+fi
+# Xfce 4.20's Wayland session (startxfce4 --wayland) runs on the labwc compositor; installs made before 23.11
+# didn't have it, so "Xfce (Wayland)" died at once with "no signal" on the monitor (tester report 23.11)
+if [[ $desk == xfce ]] && ! pacman -Qq labwc >/dev/null 2>&1; then
+    c "$(say "Ставлю labwc — без него сеанс Xfce (Wayland) не запускается" \
+          "Installing labwc: the Xfce (Wayland) session can't start without it" \
+          "Instaluję labwc — bez niego sesja Xfce (Wayland) się nie uruchamia" \
+          "Instalo labwc: sin él la sesión Xfce (Wayland) no arranca")"
+    sudo pacman -S --needed --noconfirm labwc \
+        && say "Готово: на экране входа можно выбирать «Xfce (Wayland)»." "Done: you can pick «Xfce (Wayland)» on the login screen." \
+               "Gotowe: na ekranie logowania można wybrać «Xfce (Wayland)»." "Listo: en la pantalla de inicio ya puedes elegir «Xfce (Wayland)»."
+fi
+# file managers (Thunar in Xfce and the tiling desktops) see USB sticks only with gvfs (+ udisks2, its dependency);
+# installs made before 24.11 had none (tester report)
+if ! pacman -Qq gvfs >/dev/null 2>&1; then
+    c "$(say "Ставлю gvfs — чтобы флешки и диски были видны в проводнике" "Installing gvfs so USB sticks and drives show up in the file manager" \
+          "Instaluję gvfs, żeby pendrive'y i dyski były widoczne w menedżerze plików" "Instalo gvfs para que los USB y discos aparezcan en el gestor de archivos")"
+    sudo pacman -S --needed --noconfirm gvfs
+fi
+if command -v yay >/dev/null; then
+    c "$(say "Пакеты из AUR (yay)" "AUR packages (yay)" "Pakiety z AUR (yay)" "Paquetes de AUR (yay)")"
+    # no build menus (clean / diff / edit): they are for packagers and only confuse (yay(8))
+    yay -Sua --cleanmenu=false --diffmenu=false --editmenu=false --removemake
+fi
+if command -v flatpak >/dev/null; then
+    c "Flatpak"
+    flatpak update -y
+fi
+# new default configs that pacman didn't put in place over edited ones (.pacnew): the Arch wiki says to merge them,
+# left alone for months they are the usual reason something breaks after an update
+if command -v pacdiff >/dev/null; then
+    mapfile -t pacnew < <(pacdiff -o 2>/dev/null)
+    if (( ${#pacnew[@]} )); then
+        c "$(say "Новые версии настроек (.pacnew): ${#pacnew[@]}" "New config versions (.pacnew): ${#pacnew[@]}" \
+              "Nowe wersje ustawień (.pacnew): ${#pacnew[@]}" "Nuevas versiones de ajustes (.pacnew): ${#pacnew[@]}")"
+        printf '  %s\n' "${pacnew[@]}"
+        say "Сравни и объедини их: sudo DIFFPROG='diff -u' pacdiff (или спроси в Discord FurrOS)." \
+            "Compare and merge them: sudo DIFFPROG='diff -u' pacdiff (or ask on the FurrOS Discord)." \
+            "Porównaj i połącz je: sudo DIFFPROG='diff -u' pacdiff (albo zapytaj na Discordzie FurrOS)." \
+            "Compáralas y combínalas: sudo DIFFPROG='diff -u' pacdiff (o pregunta en el Discord de FurrOS)."
+    fi
+fi
+if [[ $(pacman -Q "${KERNELS[@]}" 2>/dev/null) != "$kernel_before" ]]; then
+    c "$(say "Обновилось ядро — перезагрузись, чтобы оно заработало." "The kernel was updated: reboot to start using it." \
+          "Zaktualizowano jądro — uruchom ponownie komputer, żeby zaczęło działać." "Se actualizó el kernel: reinicia para empezar a usarlo.")"
+fi
+c "$(say "Готово! Гав!" "Done! Woof!" "Gotowe! Hau!" "¡Listo! ¡Guau!")"

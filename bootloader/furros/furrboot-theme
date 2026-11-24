@@ -1,0 +1,30 @@
+#!/bin/bash
+# furrboot-theme: shows or changes the colour theme of the FurrBoot boot menu from FurrOS (in the menu itself
+# it is the T key). FurrBoot keeps the theme in a non-volatile EFI variable (src/prefs.rs); efivarfs files hold
+# 4 bytes of attributes followed by the value (kernel docs, "efivarfs - a (U)EFI variable filesystem").
+#   furrboot-theme            current theme and the list
+#   furrboot-theme NAME       comic | neon | pastel | night | forest | mono  (run as root)
+set -euo pipefail
+NAMES=(comic neon pastel night forest mono)
+VAR=/sys/firmware/efi/efivars/FurrBootTheme-9868b1f9-c27c-4bbd-926e-76ef5b5ada1a
+[ -d /sys/firmware/efi/efivars ] || { echo "furrboot-theme: this PC is not booted in UEFI mode (FurrBoot is a UEFI menu)" >&2; exit 1; }
+
+current() { if [ -r "$VAR" ]; then tail -c +5 "$VAR" | tr -d '\0'; else echo comic; fi; }
+
+if [ $# -eq 0 ]; then
+    cur=$(current)
+    for n in "${NAMES[@]}"; do [ "$n" = "$cur" ] && echo "* $n" || echo "  $n"; done
+    exit 0
+fi
+want=$1
+ok=0; for n in "${NAMES[@]}"; do [ "$n" = "$want" ] && ok=1; done
+[ "$ok" = 1 ] || { echo "furrboot-theme: unknown theme '$want' (${NAMES[*]})" >&2; exit 2; }
+[ "$(id -u)" = 0 ] || { echo "furrboot-theme: run as root (sudo furrboot-theme $want)" >&2; exit 1; }
+# efivarfs marks most variables immutable; ours too once it exists
+[ -e "$VAR" ] && chattr -i "$VAR" 2>/dev/null || true
+# attributes: NON_VOLATILE (1) | BOOTSERVICE_ACCESS (2) | RUNTIME_ACCESS (4) = 7, little-endian
+# efivarfs takes the whole variable in one write(): build it in a temporary file, then copy it over in one go
+tmp=$(mktemp); trap 'rm -f "$tmp"' EXIT
+{ printf '\x07\x00\x00\x00'; printf '%s' "$want"; } > "$tmp"
+cat "$tmp" > "$VAR"
+echo "FurrBoot theme: $want (shown from the next boot)"

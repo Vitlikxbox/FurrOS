@@ -1,0 +1,12 @@
+# BIOS PCs: after a Limine upgrade, put the new limine-bios.sys next to the menu and the matching boot code into
+# the disk's MBR (Limine's USAGE.md: both must come from the same version). Does nothing where Limine isn't used.
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Target = usr/share/limine/limine-bios.sys
+
+[Action]
+Description = Updating Limine (BIOS boot menu)...
+When = PostTransaction
+Exec = /usr/bin/furrboot-install --bios auto

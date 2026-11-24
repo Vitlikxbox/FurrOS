@@ -1,0 +1,16 @@
+#! /bin/sh
+# FurrOS: reboot and power off right from the boot menu, at the end of the list (after the snapshots of 41_snapshots-btrfs). GRUB's own 30_uefi-firmware
+# already adds "UEFI Firmware Settings" on UEFI machines.
+set -e
+# the language chosen in the installer (/etc/furros/settings.conf UI_LANG), English when unknown
+L=$(sed -n 's/^UI_LANG=//p' /etc/furros/settings.conf 2>/dev/null || true)
+case $L in
+    ru) R='Перезагрузить компьютер'; H='Выключить компьютер' ;;
+    pl) R='Uruchom ponownie komputer'; H='Wyłącz komputer' ;;
+    es) R='Reiniciar el equipo'; H='Apagar el equipo' ;;
+    *)  R='Restart the computer'; H='Shut down the computer' ;;
+esac
+cat <<MENU
+menuentry '$R' --class restart { reboot }
+menuentry '$H' --class shutdown { halt }
+MENU

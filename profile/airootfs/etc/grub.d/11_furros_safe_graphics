@@ -1,0 +1,20 @@
+#! /bin/sh
+# FurrOS: one extra boot entry with safe graphics (nomodeset). If a new graphics card or driver shows only a black
+# screen, this entry still reaches the desktop with basic graphics, so the driver can be fixed (furros-drivers).
+# It reuses GRUB's own Linux script (run by grub-mkconfig with its environment) and keeps only the first entry.
+set -e
+[ -x /etc/grub.d/10_linux ] || exit 0
+# the entry's title in the language chosen in the installer (/etc/furros/settings.conf UI_LANG), English when unknown
+L=$(sed -n 's/^UI_LANG=//p' /etc/furros/settings.conf 2>/dev/null || true)
+case $L in
+    ru) T='FurrOS: безопасная графика (nomodeset)' ;;
+    pl) T='FurrOS: bezpieczna grafika (nomodeset)' ;;
+    es) T='FurrOS: gráficos seguros (nomodeset)' ;;
+    *)  T='FurrOS: safe graphics (nomodeset)' ;;
+esac
+export T
+GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 nomodeset" GRUB_DISABLE_SUBMENU=true GRUB_DISABLE_RECOVERY=true \
+    /etc/grub.d/10_linux 2>/dev/null | awk '
+    /^menuentry / && !started { started = 1; sub(/menuentry '\''[^'\'']*'\''/, "menuentry '\''" ENVIRON["T"] "'\''") }
+    started { print }
+    started && /^}/ { exit }'

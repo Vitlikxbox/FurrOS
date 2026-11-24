@@ -1,0 +1,28 @@
+# FurrOS GRUB theme
+desktop-image: "background.png"
+desktop-color: "#1E1218"
+title-text: ""
+terminal-font: "Unifont Regular 16"
+
+# 6 rows (FurrOS, advanced, safe graphics, Windows, firmware, snapshots) and wide enough for the snapshot list
++ boot_menu {
+    left = 18%
+    top = 68%
+    width = 64%
+    height = 27%
+    item_color = "#C8AAB4"
+    selected_item_color = "#0E080B"
+    item_height = 26
+    item_spacing = 8
+    item_padding = 4
+    selected_item_pixmap_style = "sel_*.png"
+}
+
++ label {
+    left = 0
+    top = 96%
+    width = 100%
+    align = "center"
+    color = "#C8AAB4"
+    text = "↑↓ выбор · Enter загрузка · e правка   |   ↑↓ select · Enter boot · e edit"
+}

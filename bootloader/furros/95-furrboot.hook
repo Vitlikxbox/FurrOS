@@ -1,0 +1,15 @@
+# Rewrite the FurrBoot menu after kernels or initramfs images change.
+# Post-transaction hooks run in file-name order (alpm-hooks(5)), so this one comes after 90-mkinitcpio-install.
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = usr/lib/modules/*/vmlinuz
+Target = usr/lib/initcpio/*
+Target = boot/*
+
+[Action]
+Description = Updating the FurrBoot menu...
+When = PostTransaction
+Exec = /usr/bin/furrboot-update

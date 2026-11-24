@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Budgie's labwc bridge writes unbound shortcuts as key="undefined" (often with an
+empty action), which makes labwc show a red "Config errors detected" banner.
+Drop those keybinds from the generated rc.xml and ask labwc to reload it."""
+import os
+import re
+import subprocess
+import sys
+
+rc = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/.config/budgie-desktop/labwc/rc.xml")
+try:
+    text = open(rc, encoding="utf-8").read()
+except OSError:
+    sys.exit(0)
+
+bad = re.compile(r'[ \t]*<keybind\b[^>]*\bkey="undefined"[^>]*>.*?</keybind>\s*\n?', re.S)
+empty = re.compile(r'[ \t]*<keybind\b[^>]*>\s*<action name="" command="" />\s*</keybind>\s*\n?', re.S)
+fixed = empty.sub("", bad.sub("", text))
+if fixed != text:
+    open(rc, "w", encoding="utf-8").write(fixed)
+    subprocess.run(["labwc", "--reconfigure"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

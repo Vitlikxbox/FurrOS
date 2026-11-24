@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=FurrOS Wallpapers
+Name[ru]=Обои FurrOS
+Name[pl]=Tapety FurrOS
+Name[es]=Fondos de FurrOS
+Comment=Pick a wallpaper, still or live
+Comment[ru]=Выбрать обои, обычные или живые
+Comment[pl]=Wybierz tapetę, zwykłą lub ruchomą
+Comment[es]=Elige un fondo, fijo o animado
+Exec=furros-wallpapers-app
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=wallpaper;background;обои;tapeta;fondo;furros;
+StartupWMClass=furros-wallpapers

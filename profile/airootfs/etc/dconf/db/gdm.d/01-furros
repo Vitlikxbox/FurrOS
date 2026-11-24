@@ -1,0 +1,7 @@
+# FurrOS branding for the GDM (GNOME) login screen
+[org/gnome/login-screen]
+logo='/usr/share/furros/furros-gdm-logo.png'
+disable-user-list=false
+
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'

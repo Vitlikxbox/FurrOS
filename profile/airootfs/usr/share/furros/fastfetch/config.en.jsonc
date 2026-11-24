@@ -1,0 +1,33 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "/usr/share/furros/logo.txt",
+    "color": { "1": "1;38;2;255;244;236", "2": "38;2;226;58;68", "3": "97" },
+    "padding": { "top": 1, "right": 3 }
+  },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "38;2;255;140;190", "title": "38;2;127;240;240" }
+  },
+  "modules": [
+    "title",
+    { "type": "custom", "format": "\u001b[38;2;226;58;68m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m" },
+    { "type": "os", "key": "🐾 OS" },
+    { "type": "kernel", "key": "🦴 Kernel" },
+    { "type": "bootmgr", "key": "🚀 Bootloader", "format": "{name}" },
+    { "type": "uptime", "key": "⏱  Uptime" },
+    { "type": "packages", "key": "📦 Packages" },
+    { "type": "shell", "key": "🐚 Shell" },
+    { "type": "de", "key": "🖥  DE" },
+    { "type": "wm", "key": "🪟 WM" },
+    { "type": "terminal", "key": "⌨  Terminal" },
+    { "type": "cpu", "key": "⚡ CPU" },
+    { "type": "gpu", "key": "🎨 GPU" },
+    { "type": "memory", "key": "🧠 Memory" },
+    { "type": "disk", "key": "💾 Disk" },
+    { "type": "custom", "format": "\u001b[38;2;255;140;190m💖 good dogs only 💖\u001b[0m" },
+    "break",
+    "colors"
+  ]
+}

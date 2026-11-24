@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Install FurrOS
+Name[ru]=Установить FurrOS
+Name[pl]=Zainstaluj FurrOS
+Name[es]=Instalar FurrOS
+Exec=furros-installer
+Icon=furros
+Terminal=false
+Categories=System;
+StartupWMClass=furros-installer

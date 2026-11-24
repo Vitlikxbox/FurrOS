@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=FurrOS
+Description=Lapa's paws while FurrOS boots
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/furros
+ScriptFile=/usr/share/plymouth/themes/furros/furros.script

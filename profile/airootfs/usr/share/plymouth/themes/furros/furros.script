@@ -1,0 +1,99 @@
+// FurrOS boot splash: FurrBoot's comic background, logo, wordmark and a row of hopping paws
+Window.SetBackgroundTopColor(0.118, 0.071, 0.094);
+Window.SetBackgroundBottomColor(0.063, 0.039, 0.055);
+
+W = Window.GetWidth();
+H = Window.GetHeight();
+
+// FurrBoot's look behind everything (tools/make_plymouth_bg.py): scaled to cover the screen, centred
+bg.image = Image("bg.png");
+bs = Math.Max(W / bg.image.GetWidth(), H / bg.image.GetHeight());
+bg.image = bg.image.Scale(bg.image.GetWidth() * bs, bg.image.GetHeight() * bs);
+bg.sprite = Sprite(bg.image);
+bg.sprite.SetX((W - bg.image.GetWidth()) / 2);
+bg.sprite.SetY((H - bg.image.GetHeight()) / 2);
+bg.sprite.SetZ(-100);
+
+logo.image = Image("logo.png");
+scale = Math.Min(W / 1920 * 1.0, H / 1080 * 1.0);
+if (scale < 0.5) scale = 0.5;
+logo.image = logo.image.Scale(logo.image.GetWidth() * scale, logo.image.GetHeight() * scale);
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetX(W / 2 - logo.image.GetWidth() / 2);
+logo.sprite.SetY(H / 2 - logo.image.GetHeight() / 2 - 60 * scale);
+
+word.image = Image("wordmark.png");
+word.image = word.image.Scale(word.image.GetWidth() * scale, word.image.GetHeight() * scale);
+word.sprite = Sprite(word.image);
+word.sprite.SetX(W / 2 - word.image.GetWidth() / 2);
+word.sprite.SetY(logo.sprite.GetY() + logo.image.GetHeight() + 10 * scale);
+
+for (i = 0; i < 8; i++) {
+    paw[i].image = Image("paw" + i + ".png");
+    paw[i].sprite = Sprite(paw[i].image);
+    paw[i].x = W / 2 - 4 * 48 + i * 48;
+    paw[i].y = word.sprite.GetY() + word.image.GetHeight() + 40 * scale;
+    paw[i].sprite.SetX(paw[i].x);
+    paw[i].sprite.SetY(paw[i].y);
+}
+
+t = 0;
+fun refresh() {
+    t++;
+    for (i = 0; i < 8; i++) {
+        phase = (t / 6 - i) % 8;
+        hop = 0;
+        if (phase >= 0 && phase < 1) hop = Math.Sin(phase * 3.14159) * 14;
+        paw[i].sprite.SetY(paw[i].y - hop);
+        a = 0.35;
+        if (phase >= 0 && phase < 1) a = 1;
+        paw[i].sprite.SetOpacity(a);
+    }
+}
+Plymouth.SetRefreshFunction(refresh);
+
+// password prompt for encrypted disks: pre-rendered images (no fonts needed in the initramfs)
+prompt.image = Image("prompt.png");
+prompt.sprite = Sprite(prompt.image);
+prompt.sprite.SetX(W / 2 - prompt.image.GetWidth() / 2);
+// below the row of hopping paws (they sit under the wordmark): on short screens 74% of the height overlapped them
+prompt_y = H * 0.74;
+if (prompt_y < paw[0].y + 48 + 24 * scale) prompt_y = paw[0].y + 48 + 24 * scale;
+prompt.sprite.SetY(prompt_y);
+prompt.sprite.SetOpacity(0);
+bullet.image = Image("bullet.png");
+for (i = 0; i < 32; i++) {
+    dots[i] = Sprite(bullet.image);
+    dots[i].SetOpacity(0);
+}
+
+fun display_password(prompt_text, bullets) {
+    prompt.sprite.SetOpacity(1);
+    n = Math.Int(bullets);
+    if (n > 32) n = 32;
+    total = n * 30;
+    for (i = 0; i < 32; i++) {
+        if (i < n) {
+            dots[i].SetX(W / 2 - total / 2 + i * 30);
+            dots[i].SetY(prompt_y + 112);
+            dots[i].SetOpacity(1);
+        } else {
+            dots[i].SetOpacity(0);
+        }
+    }
+}
+
+fun display_normal() {
+    prompt.sprite.SetOpacity(0);
+    for (i = 0; i < 32; i++) dots[i].SetOpacity(0);
+}
+Plymouth.SetDisplayPasswordFunction(display_password);
+Plymouth.SetDisplayNormalFunction(display_normal);
+
+fun message(text) {
+    msg.image = Image.Text(text, 0.78, 0.67, 0.71, 1, "Sans 11");
+    msg.sprite = Sprite(msg.image);
+    msg.sprite.SetX(W / 2 - msg.image.GetWidth() / 2);
+    msg.sprite.SetY(H - 40);
+}
+Plymouth.SetMessageFunction(message);

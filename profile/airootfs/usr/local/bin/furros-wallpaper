@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Wallpaper for the desktops that have no wallpaper manager of their own:
+#   Wayland (Hyprland / Sway / Niri): a looping video via mpvpaper, or a still image via swaybg;
+#   COSMIC: only the video (mpvpaper above cosmic-bg's still picture);
+#   X11 (i3 / bspwm / Awesome / Qtile): the still image via feh, a looping video via xwinwrap + mpv
+#     (xwinwrap makes a window below every other window on each monitor and mpv plays into it; picom shows it).
+# Per-user override: ~/.config/furros/wallpaper.conf with WALLPAPER=... and/or WALLPAPER_VIDEO=...
+[[ -f /etc/furros/settings.conf ]] && . /etc/furros/settings.conf
+user_conf="${XDG_CONFIG_HOME:-$HOME/.config}/furros/wallpaper.conf"
+[[ -f $user_conf ]] && . "$user_conf"
+WALLPAPER=${WALLPAPER:-/usr/share/backgrounds/furros/current.png}
+video_ok() { [[ -n ${WALLPAPER_VIDEO:-} && -f $WALLPAPER_VIDEO ]]; }
+
+desk=$(furros-desktop 2>/dev/null || printf '%s' "${XDG_CURRENT_DESKTOP:-}")
+desk=${desk,,}
+if [[ -n ${WAYLAND_DISPLAY:-} ]]; then
+    pkill -x swaybg 2>/dev/null
+    pkill -x mpvpaper 2>/dev/null
+    layer=()
+    if [[ $desk == *cosmic* ]]; then
+        # COSMIC draws the still picture itself (cosmic-bg): only the video is ours, one layer above it, under
+        # the windows and the panel/dock. Without a video there's nothing to do (tester report 22.11: on COSMIC
+        # live wallpapers stayed a still preview)
+        video_ok || exit 0
+        layer=(-l bottom)
+    else
+        # the still frame always goes underneath, so if video playback fails there is still a wallpaper
+        swaybg -m fill -i "$WALLPAPER" &
+    fi
+    if video_ok && command -v mpvpaper >/dev/null; then
+        sleep 1
+        opts="no-audio loop panscan=1.0 hwdec=auto"
+        # no GPU rendering, or software GL forced for this VM (/etc/profile.d/furros-vm-graphics.sh): the cheaper
+        # "fast" profile, as on X11 below
+        if [[ ${LIBGL_ALWAYS_SOFTWARE:-} == 1 ]] || { command -v furros-gpu-soft >/dev/null && furros-gpu-soft; }; then
+            opts+=" profile=fast framedrop=vo vd-lavc-fast vd-lavc-skiploopfilter=all"
+        fi
+        mpvpaper "${layer[@]}" -o "$opts" ALL "$WALLPAPER_VIDEO" &
+    fi
+    wait
+    exit
+fi
+
+# ---------------------------------------------------------------- X11
+pkill -x xwinwrap 2>/dev/null
+command -v feh >/dev/null && feh --no-fehbg --bg-fill "$WALLPAPER"
+video_ok || exit 0
+if ! command -v xwinwrap >/dev/null || ! command -v mpv >/dev/null; then
+    # a live wallpaper is chosen but the player is missing: say so instead of quietly showing the still frame
+    # (tester report 19.11). furros-update installs what's missing
+    miss=$(for t in xwinwrap mpv; do command -v $t >/dev/null || echo -n "$t "; done)
+    echo "furros-wallpaper: live wallpaper set, but not installed: $miss" >&2
+    case ${LANG:0:2} in
+        ru) t="Живые обои не запустились" b="Не установлено: ${miss}. Выполни в терминале furros-update и перелогинься." ;;
+        pl) t="Żywa tapeta się nie uruchomiła" b="Brak: ${miss}. Wpisz w terminalu furros-update i zaloguj się ponownie." ;;
+        es) t="El fondo animado no se inició" b="Falta: ${miss}. Ejecuta furros-update en una terminal y vuelve a entrar." ;;
+        *)  t="The live wallpaper didn't start" b="Not installed: ${miss}. Run furros-update in a terminal and log in again." ;;
+    esac
+    sleep 5   # the notification daemon starts together with us
+    command -v notify-send >/dev/null && notify-send -a FurrOS -i furros "$t" "$b"
+    exit 0
+fi
+sleep 1
+# one video window per monitor: "WxH+X+Y" from xrandr ("0: +*eDP-1 1920/344x1080/194+0+0  eDP-1")
+mapfile -t geoms < <(xrandr --listmonitors 2>/dev/null |
+    sed -nE 's#^ *[0-9]+: +[^ ]+ ([0-9]+)/[0-9]+x([0-9]+)/[0-9]+\+([0-9]+)\+([0-9]+).*#\1x\2+\3+\4#p')
+# no sound, endless loop, fill the screen (crop instead of black bars), hardware decoding when the GPU can
+# --vo: the GPU outputs first; without 3D (VirtualBox, old cards) they fail, and mpv's own fallbacks then open
+# a separate window, so x11 (software, but it does play inside the xwinwrap window) is the explicit last resort
+args=(--vo=gpu-next,gpu,x11 --loop --no-audio --panscan=1.0 --hwdec=auto --no-osc --no-input-default-bindings
+      --really-quiet --no-terminal)
+# drawing on the CPU (a VM without 3D, an old card): mpv's built-in "fast" profile (cheaper scaling) and dropped
+# frames instead of a growing delay, so the wallpaper doesn't take the processor away from the windows on top
+if command -v furros-gpu-soft >/dev/null && furros-gpu-soft; then
+    # most of the cost is decoding: --vd-lavc-fast + skipping the deblocking filter (slightly softer picture,
+    # unnoticeable on a wallpaper). Measured 19.11 in VirtualBox without 3D, 1080p H.264: 36% -> 22% of a core
+    args=(--vo=x11 "${args[@]:1}" --profile=fast --framedrop=vo --vd-lavc-fast --vd-lavc-skiploopfilter=all)
+fi
+args+=("$WALLPAPER_VIDEO")
+# xwinwrap replaces a whole argument that contains %WID with the window id, and mpv only takes --wid=VALUE:
+# so the id arrives as $0 of a tiny shell that builds --wid=<decimal id> itself
+play='exec mpv --wid="$(printf %d "$0")" "$@"'
+if (( ${#geoms[@]} )); then
+    for g in "${geoms[@]}"; do
+        xwinwrap -g "$g" -ov -ni -nf -s -st -sp -b -un -- sh -c "$play" %WID "${args[@]}" &
+    done
+else
+    xwinwrap -fs -ov -ni -nf -s -st -sp -b -un -- sh -c "$play" %WID "${args[@]}" &
+fi
+wait
