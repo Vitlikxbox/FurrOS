@@ -21,6 +21,7 @@ mod qoi;
 mod text;
 mod theme;
 mod ui;
+mod wc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -256,6 +257,12 @@ fn main() -> Status {
     let Some(mut gop) = open_gop(gop_handle) else { return fallback_boot(&cfg) };
     pick_mode(&mut gop, cfg.resolution);
     let (w, h) = gop.current_mode_info().resolution();
+    // before the first frame (and before Presenter times Blt against direct): make the frame buffer WC
+    let wc_diag = {
+        let mut fb = gop.frame_buffer();
+        let (base, size) = (fb.as_mut_ptr() as u64, fb.size());
+        wc::enable(base, size)
+    };
 
     bli::publish(&cfg, clock::per_ms());
     let cv = Canvas::new(w, h);
@@ -267,6 +274,8 @@ fn main() -> Status {
     let mut app = App::new(cv, text::Fonts::load(), th, lang, art, cfg, fw_ui, clock);
     let mut mouse = input::Pointers::open(clock::ms, true);
     app.diag = diagnostics(&gop, &app);
+    app.diag.push(wc_diag);
+    app.diag.push(format!("modes: {}", gop.modes().map(|m| { let (w, h) = m.info().resolution(); format!("{w}×{h}") }).collect::<Vec<_>>().join(", ")));
     app.diag.extend(fs_diag);
     app.diag.extend(app.cfg.notes.clone());
     let (mut mx, mut my) = (w as f32 / 2.0, h as f32 / 2.0);
@@ -345,6 +354,8 @@ fn main() -> Status {
 /// Do what the menu chose. Returns an error text if it came back.
 fn perform(app: &mut App, a: Action) -> Option<String> {
     let cfg = &mut app.cfg;
+    // the OS (or the firmware UI) gets the MTRRs exactly as the firmware set them
+    wc::restore();
     let r = match a {
         Action::Linux { entry, options } => {
             if let Some(v) = cfg.volume { bli::count_attempt(v, &mut cfg.entries[entry]); }
@@ -360,6 +371,8 @@ fn perform(app: &mut App, a: Action) -> Option<String> {
         Action::Reboot => launch::reboot(),
         Action::PowerOff => launch::poweroff(),
     };
+    // it came back (an error, or the firmware UI returned): the menu is drawn again, fast again
+    wc::reapply();
     r.err().map(|e| launch::describe(&e))
 }
 
