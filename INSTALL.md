@@ -48,7 +48,7 @@
 
 ## 4. Загрузись с флешки
 
-Вставь флешку, включи компьютер и сразу нажимай клавишу загрузочного меню — обычно **F12**, **F11**, **F8** или **Esc** (зависит от производителя). Выбери флешку. Живая система всегда стартует с безопасной графикой, так что чёрного экрана на ней быть не должно. Если флешка не появилась в списке — проверь, что Secure Boot выключен, и попробуй другой USB-порт.
+Вставь флешку, включи компьютер и сразу нажимай клавишу загрузочного меню — обычно **F12**, **F11**, **F8** или **Esc** (зависит от производителя). Выбери флешку. Если экран остался чёрным — перезагрузись и выбери в меню пункт **«безопасная графика»** (safe graphics). Если флешка не появилась в списке — проверь, что Secure Boot выключен, и попробуй другой USB-порт.
 
 ## 5. Установи
 
@@ -58,7 +58,7 @@
 2. **Условия** — прочитай и прими.
 3. **Проверка готовности** — интернет, режим загрузки, память, диск. Красный пункт останавливает установку, жёлтый только предупреждает. Нет интернета — подключись через значок сети в углу экрана.
 4. **Регион** — часовой пояс и раскладки клавиатуры.
-5. **Диск** — **«Весь диск»** (всё на нём сотрётся) или **«Рядом с Windows»**. Тут же можно выбрать Btrfs (рекомендуем: снимки системы и откат), шифрование и подкачку.
+5. **Диск** — **«Весь диск»** (всё на нём сотрётся), **«Рядом с Windows»** или **«Свои разделы»**: размечаешь диск сам (кнопка «Открыть менеджер разделов») и выбираешь раздел для FurrOS и существующий раздел EFI — так удобно ставить рядом с Arch или другим Linux. Тут же можно выбрать Btrfs (рекомендуем: снимки системы и откат), шифрование и подкачку.
 6. **Рабочий стол** — если сомневаешься, бери **KDE Plasma**. Xfce, MATE и Deepin пока помечены «Экспериментальная».
 7. **Программы** — браузер, наборы программ и ядро. Обычное ядро подходит всем; если выберешь Zen или LTS, обычное ядро и ядро FurrOS поставятся рядом как запасные.
 8. **Оформление** — обои (есть анимированные) и мелочи вроде «Школы Лапы» при первом входе.
@@ -129,7 +129,7 @@ Any of these works: **FurrOS Downloader** (Linux only), **Rufus** (pick **DD** m
 
 ## 4. Boot from the USB stick
 
-Plug in the stick, turn the computer on and keep pressing the boot menu key — usually **F12**, **F11**, **F8** or **Esc** (depends on the maker). Pick the stick. The live system always starts with safe graphics, so it shouldn't give a black screen. If the stick isn't in the list, check that Secure Boot is off and try another USB port.
+Plug in the stick, turn the computer on and keep pressing the boot menu key — usually **F12**, **F11**, **F8** or **Esc** (depends on the maker). Pick the stick. If the screen stays black, reboot and pick the **safe graphics** entry in the menu. If the stick isn't in the list, check that Secure Boot is off and try another USB port.
 
 ## 5. Install
 
@@ -139,7 +139,7 @@ On the live desktop open **«Install FurrOS»**. Lapa guides you through each st
 2. **Terms** — read and accept.
 3. **Readiness check** — internet, boot mode, memory, disk. A red item stops the install, a yellow one only warns. No internet? Connect with the network icon in the screen corner.
 4. **Region** — time zone and keyboard layouts.
-5. **Disk** — **«Whole disk»** (everything on it is erased) or **«Next to Windows»**. Here you also choose Btrfs (recommended: system snapshots and rollback), encryption and swap.
+5. **Disk** — **«Whole disk»** (everything on it is erased), **«Next to Windows»** or **«Your own partitions»**: you partition the disk yourself (the «Open the partition manager» button) and pick a partition for FurrOS and an existing EFI partition — handy next to Arch or another Linux. Here you also choose Btrfs (recommended: system snapshots and rollback), encryption and swap.
 6. **Desktop** — if unsure, take **KDE Plasma**. Xfce, MATE and Deepin are still marked «Experimental».
 7. **Apps** — a browser, app bundles and the kernel. The standard kernel suits everyone; pick Zen or LTS and the standard and FurrOS kernels are installed next to it as spares.
 8. **Look** — wallpapers (animated ones too) and small things like opening Lapa's School at first login.

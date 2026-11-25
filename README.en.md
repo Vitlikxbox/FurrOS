@@ -24,7 +24,7 @@
 
 ## ⚠️ Status
 
-**FurrOS 1.0 beta is out** — [download it from Releases](https://github.com/Vitlikxbox/FurrOS/releases/tag/v1.0-beta). Testers have already checked it on real computers, but it's a beta: back up your important files before installing. The easiest way is **FurrOS Downloader**: it downloads and verifies the image, and on Linux it also writes the USB stick (on Windows use Rufus or Ventoy).
+**FurrOS 1.0 beta is out** — [download it from Releases](https://github.com/Vitlikxbox/FurrOS/releases/tag/v1.0-beta.2). Testers have already checked it on real computers, but it's a beta: back up your important files before installing. The easiest way is **FurrOS Downloader**: it downloads and verifies the image, and on Linux it also writes the USB stick (on Windows use Rufus or Ventoy).
 
 📖 **[Installation guide](https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md#-how-to-install-furros-10-beta)** — step by step, including preparing Windows.
 
