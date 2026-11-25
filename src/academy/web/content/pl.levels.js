@@ -1,20 +1,20 @@
-/* Lapa's School, levels 2 and 3: Pixie (a confident user) and Danyok (the system inside out). 14 chapters each. */
+/* Lapa's School, levels 2 and 3: Velvet (a confident user) and Danyok (the system inside out). 14 chapters each. */
 Object.assign(window.CONTENT.pl.ui, {
   levelsTitle: "Poziomy", level: "Poziom",
-  levelsIntro: "Trzech nauczycieli, z każdym trudniej. Lapa uczy żyć w FurrOS, Pixie — pewnie rządzić systemem, Danyok — rozebrać go na części.",
-  lvl_lapa: "Lapa", lvl_pixie: "Pixie", lvl_danyok: "Danyok",
+  levelsIntro: "Trzech nauczycieli, z każdym trudniej. Lapa uczy żyć w FurrOS, Velvet — pewnie rządzić systemem, Danyok — rozebrać go na części.",
+  lvl_lapa: "Lapa", lvl_pixie: "Velvet", lvl_danyok: "Danyok",
   diff_lapa: "początkujący", diff_pixie: "pewny użytkownik", diff_danyok: "mistrz systemu",
   lvlIntro_lapa: "Pulpit, pliki, terminal, programy, gry i pierwsza pomoc.",
   lvlIntro_pixie: "Potoki, procesy, usługi, dyski, sieć, SSH, AUR i własne skrypty.",
   lvlIntro_danyok: "Rozruch, jądro, Btrfs, własne usługi, kontenery, maszyny wirtualne, szyfrowanie i hardkorowe naprawy.",
-  lvlHello_lapa: "Poziom Lapy 🐾", lvlHello_pixie: "Siema, jestem Pixie. Teraz uczę ja 🖤", lvlHello_danyok: "Cześć. Jestem Danyok i mam cytrynę 🍋",
+  lvlHello_lapa: "Poziom Lapy 🐾", lvlHello_pixie: "Siema, jestem Velvet. Teraz uczę ja 🖤", lvlHello_danyok: "Cześć. Jestem Danyok i mam cytrynę 🍋",
   lvlText_lapa: "Podstawy: jak żyć w FurrOS i niczego się nie bać. Zacznij tutaj, jeśli Linux jest dla ciebie nowy.",
   lvlText_pixie: "Lapa nauczyła cię nie bać się terminala. Ja nauczę cię nim rządzić: łączyć polecenia, znajdować wszystko, zarządzać procesami i usługami, łączyć się z innymi komputerami przez SSH i pisać własne skrypty. Będzie trochę trudniej, ale potem zrobisz w minutę to, co kiedyś zajmowało godzinę.",
   lvlText_danyok: "Ostatni poziom. Zajrzymy do środka: jak system się uruchamia, co robi jądro, jak działają Btrfs i systemd, jak zbudować własny pakiet, postawić kontener i maszynę wirtualną, zaszyfrować dysk i podnieść system z martwych. Nie spiesz się i próbuj wszystkiego na maszynie wirtualnej albo ze świeżą migawką.",
   lvlFirst: "Najpierw polecamy przejść poziom „{0}”. Ale jeśli czujesz się pewnie, możesz od razu.",
-  says_pixie: "Pixie mówi", says_danyok: "Danyok mówi",
+  says_pixie: "Velvet mówi", says_danyok: "Danyok mówi",
   nextLevel: "Dalej: {0}",
-  diplomaTitle_pixie: "Dyplom Pixie 🎓", diplomaText_pixie: "Ukończyłeś(-aś) poziom pewnego użytkownika: potoki, procesy, usługi, dyski, sieć, SSH, AUR i skrypty. Teraz terminal pracuje dla ciebie, a nie odwrotnie. Pixie zatwierdza 🖤",
+  diplomaTitle_pixie: "Dyplom Velvet 🎓", diplomaText_pixie: "Ukończyłeś(-aś) poziom pewnego użytkownika: potoki, procesy, usługi, dyski, sieć, SSH, AUR i skrypty. Teraz terminal pracuje dla ciebie, a nie odwrotnie. Velvet zatwierdza 🖤",
   diplomaTitle_danyok: "Dyplom Danyoka 🎓🍋", diplomaText_danyok: "Ukończyłeś(-aś) wszystkie trzy poziomy Szkoły Lapy. Rozruch, jądro, Btrfs, systemd, pakiety, kontenery, szyfrowanie i naprawy są teraz twoje. Oficjalnie jesteś mistrzem FurrOS. Trzymaj cytrynę 🍋",
 });
 
@@ -129,7 +129,7 @@ window.CONTENT.pl.levels = {
           { cmd: "diff -u old.conf new.conf", note: "Czym różnią się dwa pliki: - usunięte, + dodane." },
           { cmd: "sed -i 's/stare/nowe/g' plik.txt", noRun: true, note: "Zamień wszędzie w pliku. Bez -i tylko pokaże wynik i nie ruszy pliku." },
           { warn: "sed -i od razu zmienia plik. Przed edycją konfiguracji systemowych zrób kopię: <code>sudo cp plik plik.bak</code>." },
-          { say: "Trik Pixie: <code>sed</code> bez <code>-i</code> to podgląd. Najpierw patrzę, potem dodaję -i. Ani jednego zepsutego configu, mrr 🖤" },
+          { say: "Trik Velvet: <code>sed</code> bez <code>-i</code> to podgląd. Najpierw patrzę, potem dodaję -i. Ani jednego zepsutego configu, mrr 🖤" },
         ] },
       ],
       quiz: [
@@ -388,12 +388,12 @@ window.CONTENT.pl.levels = {
     },
     {
       id: "p-script", mood: "wave", badge: "⚡ Skrypciara", title: "Własne skrypty",
-      intro: "shebang, zmienne, warunki, pętle, argumenty i zakończenie poziomu Pixie.",
+      intro: "shebang, zmienne, warunki, pętle, argumenty i zakończenie poziomu Velvet.",
       lessons: [
         { title: "Pierwszy skrypt", blocks: [
           { p: "Skrypt to plik tekstowy z poleceniami. Pierwsza linia (<b>shebang</b>) mówi, czym go uruchamiać:" },
           { cmd: "#!/bin/bash\nset -euo pipefail\nname=${1:-przyjacielu}\necho \"Cześć, $name! Dziś jest $(date +%A)\"", noRun: true, note: "set -euo pipefail: zatrzymaj się przy pierwszym błędzie. $1 to pierwszy argument, :-przyjacielu — wartość domyślna. $(…) wstawia wynik polecenia." },
-          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Utwórz skrypt i nadaj mu prawo uruchamiania. Potem po prostu: hello Pixie" },
+          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Utwórz skrypt i nadaj mu prawo uruchamiania. Potem po prostu: hello Velvet" },
         ] },
         { title: "Warunki i pętle", blocks: [
           { cmd: "if [ -f ~/.bashrc ]; then\n  echo \"bashrc jest\"\nelse\n  echo \"brak bashrc\"\nfi", noRun: true, note: "-f plik istnieje, -d folder, -z pusty napis. Spacje wewnątrz [ ] są obowiązkowe!" },
@@ -772,7 +772,7 @@ window.CONTENT.pl.levels = {
             "<b>Arch Wiki</b> piszą tacy sami użytkownicy. Znalazłeś(-aś) nieścisłość — popraw, to najlepszy wkład w świat Linuksa.",
             "Pomagaj nowicjuszom na czacie: wytłumaczyć komuś to najlepszy sposób, by zrozumieć samemu.",
           ] },
-          { say: "To wszystko. Trzech nauczycieli, czterdzieści dwa rozdziały. Przeszedłeś(-aś) drogę od „co to jest terminal” do chroota i własnych pakietów. Lapa jest dumna, Pixie zatwierdza, a ode mnie — cytryna. Zasłużyłeś(-aś) 🍋🎓" },
+          { say: "To wszystko. Trzech nauczycieli, czterdzieści dwa rozdziały. Przeszedłeś(-aś) drogę od „co to jest terminal” do chroota i własnych pakietów. Lapa jest dumna, Velvet zatwierdza, a ode mnie — cytryna. Zasłużyłeś(-aś) 🍋🎓" },
         ] },
       ],
       quiz: [

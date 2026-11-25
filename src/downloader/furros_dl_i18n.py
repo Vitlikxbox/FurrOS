@@ -30,7 +30,7 @@ TR = {
     "Pause": ("Pauza", "Pausa"),
     "Connecting…": ("Łączę się…", "Conectando…"),
     "Downloading FurrOS": ("Pobieram FurrOS", "Descargando FurrOS"),
-    "Pixie": ("Pixie", "Pixie"),
+    "Velvet": ("Velvet", "Velvet"),
     "Lapa": ("Łapa", "Lapa"),
     "Danyok": ("Danek", "Danyok"),
     "Done! 🎉": ("Gotowe! 🎉", "¡Listo! 🎉"),
@@ -105,9 +105,9 @@ TR = {
     "Hi! I'm Lapa 🐾 We're going to download FurrOS together — it's quicker than it looks!":
         ("Cześć! Jestem Łapa 🐾 Razem pobierzemy FurrOS — to szybsze, niż się wydaje!",
          "¡Hola! Soy Lapa 🐾 Vamos a descargar FurrOS juntos — ¡es más rápido de lo que parece!"),
-    "And I'm Pixie. While it downloads I'll tell you cool stuff. Or just lie here.":
-        ("A ja jestem Pixie. Gdy się pobiera, opowiem ci ciekawostki. Albo po prostu poleżę.",
-         "Y yo soy Pixie. Mientras se descarga te contaré cosas chulas. O simplemente me quedaré tumbada."),
+    "And I'm Velvet. While it downloads I'll tell you cool stuff. Or just hang out here.":
+        ("A ja jestem Velvet. Gdy się pobiera, opowiem ci ciekawostki. Albo po prostu posiedzę obok.",
+         "Y yo soy Velvet. Mientras se descarga te contaré cosas chulas. O simplemente me quedo por aquí."),
     "And I'll glue the image pieces into one. It's faster with a lemon, tested 🍋":
         ("A ja skleję kawałki obrazu w jeden. Z cytryną idzie szybciej, sprawdzone 🍋",
          "Y yo pegaré los trozos de la imagen en uno. Con limón va más rápido, comprobado 🍋"),

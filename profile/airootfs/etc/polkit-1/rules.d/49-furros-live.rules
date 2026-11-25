@@ -1,0 +1,7 @@
+// FurrOS live medium only (this file is not packaged into the installed system): the live user furry
+// (password furry) gets admin actions without a password prompt, e.g. KDE Partition Manager (tester report 25.11)
+polkit.addRule(function (action, subject) {
+    if (subject.user == "furry") {
+        return polkit.Result.YES;
+    }
+});

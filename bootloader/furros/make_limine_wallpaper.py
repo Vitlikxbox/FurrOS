@@ -33,8 +33,8 @@ for y in range(0, H, 14):
 d.line([(640, 0), (560, H)], fill=INK, width=10)
 d.line([(646, 0), (566, H)], fill=PINK, width=3)
 
-# Pixie (the FurrOS mascot) on the panel, with a white sticker edge
-src = Image.open(FUR / "src/academy/web/img/pixie.png").convert("RGBA")
+# Danyok (the FurrOS mascot since 25.11.2026) on the panel, with a white sticker edge
+src = Image.open(FUR / "src/academy/web/img/danyok.png").convert("RGBA")
 h = 600
 pix = src.resize((round(src.width * h / src.height), h), Image.LANCZOS)
 edge = pix.split()[3].filter(ImageFilter.MaxFilter(13))

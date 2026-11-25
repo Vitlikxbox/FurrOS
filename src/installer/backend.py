@@ -113,6 +113,7 @@ def prepare(plan):
     run("ping -c1 -W5 archlinux.org >/dev/null", check=True)
     progress(2, "Ищу самые быстрые зеркала")
     run("timeout 90 reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist", check=False)
+    add_fallback_mirrors()
     run("sed -i 's/^#\\?ParallelDownloads.*/ParallelDownloads = 5/' /etc/pacman.conf")
     # pacman's own timeout drops stalled mirrors (the live ISO disables it): install_packages() retries
     run("sed -i '/^DisableDownloadTimeout/d' /etc/pacman.conf")
@@ -144,8 +145,16 @@ def boot_in_root(plan):
     """/boot (kernel + initramfs) inside the Btrfs root, so every snapshot carries the kernel its modules belong to.
     On a separate /boot grub-btrfs boots every snapshot with today's kernel: after a kernel update an older
     snapshot then has no matching /usr/lib/modules (no graphics, no network). Encrypted roots keep a plain /boot:
-    GRUB can't open LUKS2 with argon2."""
+    GRUB can't open LUKS2 with argon2. Own partitions ("manual", never encrypted): /boot is always inside the root."""
+    if plan.get("mode") == "manual":
+        return True
     return plan.get("filesystem") == "btrfs" and not plan.get("encrypt")
+
+
+def shared_esp(plan):
+    """An EFI partition FurrOS didn't create and only adds its loader to: next to Windows, or the person's own
+    partitions (another Linux, e.g. Arch, already lives there)."""
+    return plan.get("mode") in ("alongside", "manual")
 
 
 def check_windows_shut_down(disk):
@@ -328,6 +337,53 @@ def is_live_medium(disk):
     return False
 
 
+def prepare_manual(plan):
+    """Own partitions: the person made them (e.g. in KDE Partition Manager) and picked one for FurrOS, which is
+    formatted, and an existing EFI partition, which is only added to (another Linux or Windows keeps its loader).
+    Nothing else on the disks is touched."""
+    root, esp = plan.get("root_part", ""), plan.get("esp", "")
+    if DRY:
+        return root or "/dev/sda3", esp or "/dev/sda1"
+    if not is_uefi():
+        raise InstallError(T("Установка на свои разделы работает только в режиме UEFI"))
+    if not root or not esp or root == esp:
+        raise InstallError(T("Выбери раздел для FurrOS и раздел EFI"))
+    if plan.get("encrypt"):
+        # /boot sits inside the root here, and GRUB can't open LUKS2 with argon2
+        raise InstallError(T("Шифрование на своих разделах пока не поддерживается"))
+
+    def info(dev):
+        f = subprocess.run(["lsblk", "-bndo", "TYPE,SIZE,PARTTYPE,FSTYPE,PKNAME", dev], capture_output=True,
+                           text=True).stdout.split()
+        return (f + ["", "", "", "", ""])[:5]
+    rtype, rsize, rpt, _rfs, rdisk = info(root)
+    etype, _esize, ept, efs, _edisk = info(esp)
+    out(f"manual: root {root} {rtype} {rsize} {rpt}; esp {esp} {etype} {ept} {efs}")
+    if rtype != "part" or rpt.lower() in (ESP_GUID, MSR_GUID):
+        raise InstallError(T("Раздел для FurrOS не подходит: выбери обычный раздел, не EFI и не служебный раздел Windows"))
+    if int(rsize or 0) < 20 * 1024 ** 3:
+        raise InstallError(T("Раздел для FurrOS меньше 20 ГБ"))
+    if etype != "part" or ept.lower() != ESP_GUID or efs != "vfat":
+        raise InstallError(T("Выбранный раздел EFI не похож на раздел EFI (нужен тип «EFI System» и FAT32)"))
+    if is_live_medium(f"/dev/{rdisk}"):
+        raise InstallError(T("Это флешка, с которой запущена FurrOS: на неё ставить нельзя. Выбери другой диск"))
+    # the same look at the EFI partition as next to Windows: room for the loaders
+    tmp = "/run/furros-esp-check"
+    run(f"mkdir -p {tmp} && mount -o ro -t vfat {esp} {tmp}")
+    try:
+        st = os.statvfs(tmp)
+        free = st.f_bavail * st.f_frsize
+    finally:
+        run(f"umount {tmp}", check=False)
+    if free < ESP_MIN_FREE:
+        raise InstallError(T("В разделе EFI меньше {0} МБ свободного места, загрузчик FurrOS туда не поместится. Диск не тронут",
+                             ESP_MIN_FREE // 1024 ** 2))
+    progress(4, "Готовлю раздел {0}", root)
+    run(f"swapoff {root} 2>/dev/null; umount -l {root} 2>/dev/null; udevadm settle; true", check=False)
+    run(f"wipefs -af {root}")
+    return root, esp
+
+
 def partition(plan):
     step("disk")
     disk = plan["disk"]
@@ -335,9 +391,13 @@ def partition(plan):
     if plan.get("mode") == "alongside":
         boot, root, esp = partition_alongside(plan)
         return make_filesystems(plan, boot, root, esp)
+    if plan.get("mode") == "manual":
+        root, esp = prepare_manual(plan)
+        return make_filesystems(plan, None, root, esp)
     if not DRY and is_live_medium(disk):
         raise InstallError(T("Это флешка, с которой запущена FurrOS: на неё ставить нельзя. Выбери другой диск"))
     progress(4, "Размечаю {0}", disk)
+    release_disk(disk)
     run(f"wipefs -af {disk}")
     run(f"sgdisk --zap-all {disk}", check=False)
     if uefi:
@@ -349,7 +409,14 @@ def partition(plan):
         layout = ("label: gpt\nsize=1M, type=21686148-6449-6E6F-744E-656564454649, name=BIOS\n"
                   "size=1G, type=uefi, name=FurrOS-boot\ntype=linux, name=FurrOS\n")
     # --wipe-partitions: old file system signatures inside the new partitions go too (sfdisk(8))
-    run(["sfdisk", "--wipe", "always", "--wipe-partitions", "always", disk], input=layout)
+    try:
+        run(["sfdisk", "--wipe", "always", "--wipe-partitions", "always", disk], input=layout)
+    except InstallError:
+        # the kernel couldn't re-read the table because something still held the disk (tester report 25.11):
+        # free it once more and repeat
+        release_disk(disk)
+        time.sleep(2)
+        run(["sfdisk", "--wipe", "always", "--wipe-partitions", "always", disk], input=layout)
     run(f"partprobe {disk}; udevadm settle", check=False)
     if uefi:
         boot, root = part(disk, 1), part(disk, 2)
@@ -551,6 +618,38 @@ def install_packages(plan):
         run(r"sed -i '/^#\[multilib\]/,+1 s/^#//' " + f"{MNT}/etc/pacman.conf")
     run(f"sed -i 's/^#\\?ParallelDownloads.*/ParallelDownloads = 8/; s/^#Color/Color\\nILoveCandy/' {MNT}/etc/pacman.conf")
     run(f"cp /etc/pacman.d/mirrorlist {MNT}/etc/pacman.d/mirrorlist")
+
+
+# Tried after reflector's picks: pacman moves on to the next Server when one fails. When reflector can't rate
+# anything (handshake timeouts behind slow or filtered links, tester logs 25.11) the list still has big mirrors,
+# including two in Russia where many FurrOS users are (archlinux.org/mirrors/status, checked 25.11).
+FALLBACK_MIRRORS = ["https://geo.mirror.pkgbuild.com", "https://mirror.yandex.ru/archlinux",
+                    "https://repository.su/archlinux", "https://ftp.halifax.rwth-aachen.de/archlinux"]
+
+
+def add_fallback_mirrors(path="/etc/pacman.d/mirrorlist"):
+    if DRY:
+        return
+    try:
+        text = Path(path).read_text()
+    except OSError:
+        text = ""
+    add = [f"Server = {m}/$repo/os/$arch" for m in FALLBACK_MIRRORS if m.split("://")[1].split("/")[0] not in text]
+    if add:
+        Path(path).write_text(text.rstrip("\n") + "\n# FurrOS fallbacks\n" + "\n".join(add) + "\n")
+        out(f"fallback mirrors added: {len(add)}")
+
+
+def release_disk(disk):
+    """Whatever the live session holds on the target disk goes: the desktop automounts partitions, a swap partition
+    may be on, old LVM/RAID/LUKS volumes may be open. Otherwise sfdisk can't make the kernel re-read the table."""
+    if DRY:
+        return
+    run(f"for p in $(lsblk -lnpo PATH {disk} | tail -n +2); do swapoff \"$p\" 2>/dev/null; "
+        f"umount -l \"$p\" 2>/dev/null; done; "
+        f"for m in $(lsblk -lnpo PATH,TYPE {disk} | awk '$2==\"crypt\"||$2==\"lvm\"{{print $1}}'); do "
+        f"dmsetup remove -f \"$m\" 2>/dev/null; done; "
+        f"vgchange -an 2>/dev/null; mdadm --stop --scan 2>/dev/null; udevadm settle; true", check=False)
 
 
 def rotate_mirrors(path="/etc/pacman.d/mirrorlist"):
@@ -764,7 +863,7 @@ def configure(plan):
     step("system")
     progress(74, "Настраиваю язык, время и имя компьютера")
     run(f"genfstab -U {MNT} >> {MNT}/etc/fstab")
-    if plan.get("mode") == "alongside" and not DRY:
+    if shared_esp(plan) and not DRY:
         # Windows' EFI partition is mounted only while something reads it (os-prober, grub-install) and let go after a
         # minute: if Windows hibernates (or Fast Startup comes back after an update) the two systems don't keep it
         # mounted at the same time (Arch wiki, EFI system partition#Hibernation and multi boot systems)
@@ -958,7 +1057,7 @@ def users(plan):
     else:
         run(["chpasswd"], input=f"root:{plan['password']}\n", chroot=True)
     # account picture: the FurrOS mascot (AccountsService for SDDM/GDM and the settings, ~/.face.icon for the rest)
-    avatar = "/usr/share/furros/avatars/furros-mascot.png"
+    avatar = "/usr/share/furros/avatars/furros-danyok.png"
     if DRY or (MNT / avatar.lstrip("/")).exists():
         run(f"install -Dm644 {MNT}{avatar} {MNT}/var/lib/AccountsService/icons/{u}", check=False)
         write(f"/var/lib/AccountsService/users/{u}", f"[User]\nIcon=/var/lib/AccountsService/icons/{u}\n")
@@ -1208,7 +1307,7 @@ def bootloader(plan):
     # the theme must sit next to the kernel on the unencrypted /boot, not on the (maybe encrypted) root
     run(f"mkdir -p {MNT}/boot/grub/themes && cp -r {MNT}/usr/share/grub/themes/furros {MNT}/boot/grub/themes/")
     write("/etc/default/grub", defaults)
-    if plan.get("mode") == "alongside":
+    if shared_esp(plan):
         # the shared EFI partition: our own FurrOS entry only, Windows' files and fallback loader stay as they are;
         # os-prober (GRUB_DISABLE_OS_PROBER=false) puts "Windows Boot Manager" into the menu
         run(["grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=FurrOS"], chroot=True)
@@ -1268,8 +1367,12 @@ def furrboot(plan):
     if plan.get("mode") == "alongside" and not boot_in_root(plan):
         out("furrboot: /boot is a separate ext4 partition next to Windows, GRUB stays the boot menu")
         return
+    if plan.get("mode") == "manual" and plan.get("filesystem") != "btrfs":
+        # FurrBoot reads kernels from Btrfs or FAT only; on an ext4 root GRUB stays the boot menu
+        out("furrboot: own partitions with an ext4 root, GRUB stays the boot menu")
+        return
     progress(96, "Ставлю загрузчик FurrBoot")
-    esp = "/boot/efi" if (plan.get("mode") == "alongside" or boot_in_root(plan)) else "/boot"
+    esp = "/boot/efi" if (shared_esp(plan) or boot_in_root(plan)) else "/boot"
     # first the files and the menu, without a firmware entry: only a FurrBoot that has a menu becomes the default
     try:
         run(["furrboot-install", "--esp", esp, "--no-nvram"], chroot=True)

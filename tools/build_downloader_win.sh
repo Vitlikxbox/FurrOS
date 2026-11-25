@@ -17,6 +17,6 @@ fi
 "$PY" -c "from PIL import Image; Image.open('$W/assets/paw.png').convert('RGBA').save('$W/paw.ico', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])"
 cd "$W"
 HERE=$(pwd -W)  # PyInstaller resolves paths against the .spec folder: give it absolute Windows paths
-../../$PY -m PyInstaller --noconfirm --onefile --windowed --name "$NAME" --icon "$HERE/paw.ico" \
+../../$PY -m PyInstaller --noconfirm --onefile --windowed --hidden-import certifi --name "$NAME" --icon "$HERE/paw.ico" \
     --add-data "$HERE/assets;assets" --distpath ../out --workpath work --specpath work furros_downloader_gui.py
 ls -la "../out/$NAME.exe"

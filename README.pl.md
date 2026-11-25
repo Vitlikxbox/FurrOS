@@ -132,7 +132,7 @@ Kod FurrOS jest udostępniony na licencji **[GNU GPL v3.0](LICENSE)**: można go
 zmieniać i rozpowszechniać, a wszystkie zmienione wersje też muszą pozostać otwarte na GPL-3.0.
 
 Licencja **nie obejmuje**:
-- grafik: logo, Pixie, Danyok, tapety i oprawa FurrOS są na licencji **[CC BY-NC-SA 4.0](LICENSE-ART.md)**. Grafiki Lapy i Taroyaddy oraz animowane tapety należą do ich autorów;
+- grafik: logo, Pixie, Danyok, tapety i oprawa FurrOS są na licencji **[CC BY-NC-SA 4.0](LICENSE-ART.md)**. Grafiki Lapy, Velvet i Mimi oraz animowane tapety należą do ich autorów;
 - pakietów Arch Linux i innych programów w obrazie — każdy ma własną licencję. Arch Linux jest znakiem towarowym jego właścicieli.
 
 ## Grafika i prawa
@@ -140,7 +140,7 @@ Licencja **nie obejmuje**:
 FurrOS to niekomercyjny projekt fanowski. **Lapa** (dalmatynka) i inne postacie, a także grafiki
 na zrzutach pulpitów i tapet należą do ich autorów i są pokazane wyłącznie poglądowo.
 
-🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **taroyadda**, **sashley**, **crispytyph**, **dentola69**, **cobac228_16982**. Dziękujemy! 🐾
+🎨 Artyści, których prace są użyte w FurrOS: **lapalilpup**, **sxshely**, **sashley**, **crispytyph**, **dentola69**, **cobac228_16982**. Dziękujemy! 🐾
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""FurrOS Downloader — the window. Lapa, Pixie and Danyok walk the person through downloading the FurrOS ISO:
-a short intro scene, the download with a paw-print progress bar and Pixie's tips, Danyok gluing the parts together,
+"""FurrOS Downloader — the window. Lapa, Velvet and Danyok walk the person through downloading the FurrOS ISO:
+a short intro scene, the download with a paw-print progress bar and Velvet's tips, Danyok gluing the parts together,
 the check, and a little celebration. On Linux it can also write the ISO to a USB stick.
 
     python3 furros_downloader_gui.py              the latest public build
@@ -698,8 +698,8 @@ class IntroPage(Page):
     BEATS = [
         ("lapa", "lapa-wave.png", "Лапа", "Lapa", "Привет! Я Лапа 🐾 Сейчас мы вместе скачаем FurrOS — это быстрее, чем кажется!",
          "Hi! I'm Lapa 🐾 We're going to download FurrOS together — it's quicker than it looks!"),
-        ("pixie", None, "Пикси", "Pixie", "А я Пикси. Пока всё качается, буду рассказывать интересное. Ну, или просто полежу.",
-         "And I'm Pixie. While it downloads I'll tell you cool stuff. Or just lie here."),
+        ("pixie", None, "Велвет", "Velvet", "А я Велвет. Пока всё качается, буду рассказывать интересное. Ну, или просто посижу рядом.",
+         "And I'm Velvet. While it downloads I'll tell you cool stuff. Or just hang out here."),
         ("danyok", None, "Данёк", "Danyok", "А я склею кусочки образа в один. С лимоном получается быстрее, проверено 🍋",
          "And I'll glue the image pieces into one. It's faster with a lemon, tested 🍋"),
         ("lapa", "lapa-heart.png", "Лапа", "Lapa", "Ну что, поехали? Жми, когда будешь готов!",
@@ -915,7 +915,7 @@ class DownloadPage(Page):
         self.speeds = []
 
     def spots(self):
-        """The cast in one row on the floor: Pixie on the left, the disc, Danyok, Lapa on the right."""
+        """The cast in one row on the floor: Velvet on the left, the disc, Danyok, Lapa on the right."""
         h, w = self.height(), self.width()
         return dict(pixie=QPoint(30, h - self.pixie.height() - 24),
                     disc=QPoint(int(w * 0.30), h - self.disc.height() - 60),
@@ -951,7 +951,7 @@ class DownloadPage(Page):
             return
         ru, en = self.tips.pop(0)
         self.tips.append((ru, en))
-        self.tip.say(self.pixie, T("Пикси", "Pixie"), T(ru, en), "pixie")
+        self.tip.say(self.pixie, T("Велвет", "Velvet"), T(ru, en), "pixie")
         self.pixie.hop(18)
 
     def on_progress(self, stage, done, total, speed):

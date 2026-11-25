@@ -69,7 +69,7 @@
 
 ## 6. После установки
 
-- Тебя встретит Пикси, а потом Лапа покажет, где что, в **«Школе Лапы»**.
+- Тебя встретит Данёк, а потом Лапа покажет, где что, в **«Школе Лапы»**.
 - Обновлять систему: `furros-update` в терминале.
 - Если что-то сломалось после обновления — в меню загрузки FurrBoot можно загрузиться из снимка системы (на Btrfs).
 
@@ -150,7 +150,7 @@ The install takes 10 to 40 minutes, depending on your internet and computer. Whe
 
 ## 6. After installing
 
-- Pixie greets you, then Lapa shows you around in **Lapa's School**.
+- Danyok greets you, then Lapa shows you around in **Lapa's School**.
 - To update the system: `furros-update` in a terminal.
 - If an update broke something, the FurrBoot boot menu can start the system from a snapshot (on Btrfs).
 

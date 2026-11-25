@@ -30,7 +30,7 @@ Rectangle {
         "es": ["Apagar", "Reiniciar", "Suspender", "Hola", "Contraseña", "Entrar →",
                "¡Grr! Contraseña incorrecta", "Olfateando la contraseña…", "Esta es tu FurrOS. ¡Entra y vamos!"] })
     readonly property var labels: words[Qt.locale().name.substring(0, 2)] || words["en"]
-    readonly property string fallbackAvatar: "/usr/share/furros/avatars/furros-mascot.png"
+    readonly property string fallbackAvatar: "/usr/share/furros/avatars/furros-danyok.png"
 
     // userModel gives each user's picture as the "icon" role: collect them to show the selected one
     Repeater {

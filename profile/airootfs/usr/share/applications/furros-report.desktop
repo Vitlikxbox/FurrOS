@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Bug report
+Name[ru]=Отчёт об ошибке
+Name[pl]=Raport o błędzie
+Name[es]=Informe de error
+Comment=Collect a FurrOS log to share with the team
+Comment[ru]=Собрать журнал FurrOS, чтобы поделиться им с командой
+Comment[pl]=Zbierz dziennik FurrOS, aby udostępnić go zespołowi
+Comment[es]=Reúne un registro de FurrOS para compartirlo con el equipo
+Exec=furros-report-gui
+Icon=furros
+Terminal=false
+Categories=System;Utility;
+Keywords=bug;log;report;error;журнал;ошибка;

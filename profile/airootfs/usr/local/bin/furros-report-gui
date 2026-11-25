@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""«Отчёт об ошибке»: runs furros-report, shows what's inside, and lets the person save it to a USB stick, copy it,
+or get a link (paste.rs, only after a yes) to paste into Discord or a GitHub issue. Started from the app menu and
+from the installer's error screen. Four languages, from /etc/furros/settings.conf (UI_LANG) or $LANG."""
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QGuiApplication
+from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox, QPlainTextEdit, QPushButton,
+                               QVBoxLayout, QWidget)
+
+
+def lang():
+    try:
+        m = re.search(r"^UI_LANG=(\w+)", Path("/etc/furros/settings.conf").read_text(), re.M)
+        if m:
+            return m.group(1)
+    except OSError:
+        pass
+    return (os.environ.get("LANG") or "en")[:2]
+
+
+L = lang()
+TEXT = {
+    "title": ("Отчёт об ошибке", "Bug report", "Raport o błędzie", "Informe de error"),
+    "lead": ("Здесь собрано всё, что поможет найти ошибку: видеокарта, диски, ошибки системы и журнал установщика. "
+             "Пароли, твоё имя, имя компьютера и адреса в сети заменены звёздочками.",
+             "Everything that helps find the bug is here: graphics card, disks, system errors and the installer log. "
+             "Passwords, your name, the computer name and network addresses are replaced.",
+             "Zebrano tu wszystko, co pomoże znaleźć błąd: kartę graficzną, dyski, błędy systemu i dziennik instalatora. "
+             "Hasła, twoje imię, nazwa komputera i adresy sieciowe są zastąpione.",
+             "Aquí está todo lo que ayuda a encontrar el error: tarjeta gráfica, discos, errores del sistema y el registro "
+             "del instalador. Las contraseñas, tu nombre, el del equipo y las direcciones de red están ocultos."),
+    "saved": ("Сохранено: {0}", "Saved: {0}", "Zapisano: {0}", "Guardado: {0}"),
+    "link": ("Получить ссылку", "Get a link", "Uzyskaj link", "Obtener enlace"),
+    "copy": ("Скопировать текст", "Copy the text", "Kopiuj tekst", "Copiar el texto"),
+    "usb": ("На флешку", "Save to USB stick", "Na pendrive", "Al USB"),
+    "folder": ("Открыть папку", "Open folder", "Otwórz folder", "Abrir carpeta"),
+    "close": ("Закрыть", "Close", "Zamknij", "Cerrar"),
+    "ask": ("Отчёт будет загружен на paste.rs: любой, у кого есть ссылка, сможет его прочитать. Загрузить?",
+            "The report will be uploaded to paste.rs: anyone with the link can read it. Upload?",
+            "Raport zostanie wysłany na paste.rs: każdy, kto ma link, będzie mógł go przeczytać. Wysłać?",
+            "El informe se subirá a paste.rs: cualquiera con el enlace podrá leerlo. ¿Subirlo?"),
+    "got": ("Ссылка скопирована: {0}\nВставь её в Discord (🐞・баги) или в issue на GitHub.",
+            "Link copied: {0}\nPaste it into Discord (🐞・bug-reports) or a GitHub issue.",
+            "Link skopiowany: {0}\nWklej go na Discordzie (🐞・bug-reports) albo w zgłoszeniu na GitHubie.",
+            "Enlace copiado: {0}\nPégalo en Discord (🐞・bug-reports) o en un issue de GitHub."),
+    "fail": ("Не получилось загрузить: нет интернета? Файл можно прикрепить вручную.",
+             "Upload failed: no internet? You can attach the file by hand.",
+             "Nie udało się wysłać: brak internetu? Plik można dołączyć ręcznie.",
+             "No se pudo subir: ¿sin internet? Puedes adjuntar el archivo a mano."),
+    "copied": ("Текст скопирован.", "Text copied.", "Tekst skopiowany.", "Texto copiado."),
+    "nousb": ("Не вижу подключённой флешки. Вставь её и нажми ещё раз.",
+              "No USB stick found. Plug one in and press again.",
+              "Nie widzę pendrive'a. Podłącz go i naciśnij ponownie.",
+              "No veo ningún USB. Conéctalo y pulsa otra vez."),
+    "onusb": ("Скопировано на флешку: {0}", "Copied to the USB stick: {0}", "Skopiowano na pendrive: {0}",
+              "Copiado al USB: {0}"),
+}
+
+
+def t(key, *a):
+    s = TEXT[key][{"ru": 0, "en": 1, "pl": 2, "es": 3}.get(L, 1)]
+    return s.format(*a) if a else s
+
+
+def usb_dirs():
+    """Mounted removable partitions, except the live medium itself."""
+    try:
+        out = subprocess.run(["lsblk", "-rno", "MOUNTPOINT,RM,HOTPLUG,LABEL"], capture_output=True, text=True).stdout
+    except OSError:
+        return []
+    dirs = []
+    for line in out.splitlines():
+        f = line.split(" ")
+        if len(f) >= 3 and f[0] and (f[1] == "1" or f[2] == "1") and not f[0].startswith(("/run/archiso", "/boot")) \
+                and f[0] != "/" and os.access(f[0].replace("\\x20", " "), os.W_OK):
+            dirs.append(f[0].replace("\\x20", " "))
+    return dirs
+
+
+class Win(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle(t("title"))
+        self.resize(820, 600)
+        self.path = subprocess.run(["furros-report"], capture_output=True, text=True).stdout.strip().splitlines()[-1]
+        v = QVBoxLayout(self)
+        head = QLabel(f"<b style='font-size:18px'>🐾 {t('title')}</b><br>{t('lead')}")
+        head.setWordWrap(True)
+        v.addWidget(head)
+        self.text = QPlainTextEdit(Path(self.path).read_text(errors="replace"))
+        self.text.setReadOnly(True)
+        self.text.setFont(QFont("monospace", 9))
+        v.addWidget(self.text, 1)
+        self.status = QLabel(t("saved", self.path))
+        self.status.setWordWrap(True)
+        self.status.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        v.addWidget(self.status)
+        row = QHBoxLayout()
+        for key, fn in (("link", self.share), ("copy", self.copy), ("usb", self.to_usb), ("folder", self.folder),
+                        ("close", self.close)):
+            b = QPushButton(t(key))
+            b.clicked.connect(fn)
+            row.addWidget(b)
+        v.addLayout(row)
+
+    def share(self):
+        if QMessageBox.question(self, t("title"), t("ask")) != QMessageBox.Yes:
+            return
+        r = subprocess.run(["curl", "-fsS", "--max-time", "60", "--data-binary", f"@{self.path}", "https://paste.rs/"],
+                           capture_output=True, text=True)
+        url = r.stdout.strip()
+        if r.returncode or not url.startswith("https://"):
+            self.status.setText(t("fail"))
+            return
+        QGuiApplication.clipboard().setText(url)
+        self.status.setText(t("got", url))
+
+    def copy(self):
+        QGuiApplication.clipboard().setText(self.text.toPlainText())
+        self.status.setText(t("copied"))
+
+    def to_usb(self):
+        dirs = usb_dirs()
+        if not dirs:
+            self.status.setText(t("nousb"))
+            return
+        dst = Path(dirs[0]) / Path(self.path).name
+        shutil.copy2(self.path, dst)
+        subprocess.run(["sync"])
+        self.status.setText(t("onusb", dst))
+
+    def folder(self):
+        subprocess.Popen(["xdg-open", str(Path(self.path).parent)], start_new_session=True)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = Win()
+    w.show()
+    sys.exit(app.exec())

@@ -10,8 +10,8 @@ J=/root/jammy
 TOOL=/root/appimagetool-1.9.1-x86_64.AppImage
 [ -x $TOOL ] || { curl -fsSL -o $TOOL https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage; chmod +x $TOOL; }
 for m in proc sys dev; do mountpoint -q $J/$m || mount --rbind /$m $J/$m; done
-chroot $J /bin/bash -c "set -e; cd /root/dl; rm -rf build dist
-    /root/venv/bin/pyinstaller --noconfirm --onedir --windowed --name furros-downloader \
+chroot $J /bin/bash -c "set -e; /root/venv/bin/pip install -q certifi; cd /root/dl; rm -rf build dist
+    /root/venv/bin/pyinstaller --noconfirm --onedir --windowed --hidden-import certifi --name furros-downloader \
         --add-data assets:assets furros_downloader_gui.py >/root/pyinstaller.log 2>&1 || { tail -20 /root/pyinstaller.log; exit 1; }"
 A=/root/dl-appdir
 rm -rf $A && mkdir -p $A/usr/lib $A/usr/share/icons/hicolor/256x256/apps

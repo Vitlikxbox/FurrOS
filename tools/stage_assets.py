@@ -44,13 +44,14 @@ for p in (BRAND.parent / "art" / "anim-out").glob("anim-*.png"):
 
 for p in (BRAND / "lapa").glob("*.png"):
     shutil.copy2(p, SHARE / "lapa" / p.name)
-# FurrOS mascot by taroyadda: avatars (KDE and GNOME list these in the user settings) + the installer's picture
+# avatars (KDE and GNOME list these in the user settings) + the mascot picture (Danyok since 25.11.2026: taroyadda
+# left the project and asked to remove her works, tools/remove_taroyadda.py)
 for d in (SHARE / "avatars", SHARE / "mascot", ROOT / "usr/share/plasma/avatars", ROOT / "usr/share/pixmaps/faces"):
     d.mkdir(parents=True, exist_ok=True)
 for p in (BRAND / "avatars").glob("furros-*.png"):
     for d in (SHARE / "avatars", ROOT / "usr/share/plasma/avatars", ROOT / "usr/share/pixmaps/faces"):
         shutil.copy2(p, d / p.name)
-shutil.copy2(BRAND / "mascot-taro" / "mascot-small.png", SHARE / "mascot" / "mascot-small.png")
+shutil.copy2(BRAND.parent / "src/academy/web/img/danyok.png", SHARE / "mascot" / "mascot-small.png")
 # Pixie (mascot by dentola69): stickers for the welcome window; the source drawing stays out of the system
 (SHARE / "pixie").mkdir(exist_ok=True)
 for p in (BRAND / "pixie").glob("pixie-lying*.png"):

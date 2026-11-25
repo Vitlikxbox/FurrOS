@@ -166,6 +166,8 @@ file_permissions+=(
   ["/usr/lib/furros/academy/furros_welcome.py"]="0:0:755"
   ["/usr/local/bin/furros-drivers"]="0:0:755"
   ["/usr/local/bin/furros-update"]="0:0:755"
+  ["/usr/local/bin/furros-report"]="0:0:755"
+  ["/usr/local/bin/furros-report-gui"]="0:0:755"
   ["/usr/local/bin/furros-gpu-soft"]="0:0:755"
   ["/usr/local/bin/furros-desktop"]="0:0:755"
   ["/usr/local/bin/furros-picom"]="0:0:755"
@@ -186,15 +188,11 @@ for f in $(grep -rl "archisobasedir=" "$PROFILE"/efiboot "$PROFILE"/grub "$PROFI
     sed -i '/archisobasedir=/ { /quiet splash/! s/$/ quiet splash/ }' "$f"
 done
 cp "$SRC/profile/airootfs/usr/share/furros/splash.png" "$PROFILE/syslinux/splash.png" 2>/dev/null || true
-# The live system always boots with safe graphics (nomodeset): no black screen on a new graphics card
-# (often NVIDIA), at the cost of firmware-framebuffer graphics while installing. Every live entry gets it
-# (UEFI systemd-boot, BIOS syslinux, the GRUB menus); the installed system keeps normal graphics (the
-# installer writes its own kernel command line). English titles: firmware fonts often have no Cyrillic.
-for f in $(grep -rl "archisobasedir=" "$PROFILE"/efiboot "$PROFILE"/grub "$PROFILE"/syslinux 2>/dev/null); do
-    sed -i '/archisobasedir=/ { / nomodeset/! s/$/ nomodeset/ }' "$f"
-done
-for f in $(grep -l "archisobasedir=" "$PROFILE"/efiboot/loader/entries/*.conf 2>/dev/null); do sed -i -E 's/^(title .*)$/\1 - safe graphics/' "$f"; done
-sed -i -E 's/^(MENU LABEL .*)$/\1 - safe graphics/' "$PROFILE"/syslinux/archiso_sys-linux.cfg 2>/dev/null || true
+# Live boot menus: the first entry boots with full graphics, a second "safe graphics" entry adds nomodeset.
+# Until 25.11 every live entry had nomodeset, and integrated GPUs on old BIOS laptops got no picture at all
+# (tester reports). UEFI entries, BIOS syslinux and the GRUB menus; English titles: firmware fonts often have
+# no Cyrillic. The installed system writes its own kernel command line (FurrBoot keeps its own safe entry).
+python3 "$SRC/tools/live_safe_entries.py" "$PROFILE" || { log "FAILED: live safe-graphics entries"; exit 1; }
 
 # FurrBoot instead of systemd-boot for UEFI (bootloader/furros/furrboot.efi, or FURRBOOT_EFI=/path). It reads the
 # same Boot Loader Specification entries; the extra furrboot-* keys only give them names and pictures.
@@ -207,7 +205,12 @@ if [[ -n ${FURRBOOT_EFI:-} ]]; then
     E=$PROFILE/efiboot/loader/entries
     sed -i -E 's/^title .*/title    FurrOS Live/' "$E/01-archiso-linux.conf"
     printf '%s\n' "furrboot-kind main" "furrboot-subtitle попробовать и установить" \
-        "furrboot-when с безопасной графикой (nomodeset)" >> "$E/01-archiso-linux.conf"
+        "furrboot-when обычный запуск" >> "$E/01-archiso-linux.conf"
+    if [[ -f $E/03-archiso-linux-safe.conf ]]; then
+        sed -i -E 's/^title .*/title    FurrOS Live — безопасная графика/' "$E/03-archiso-linux-safe.conf"
+        printf '%s\n' "furrboot-kind safe" "furrboot-when чёрный экран? запуск без драйвера видеокарты (nomodeset)" \
+            >> "$E/03-archiso-linux-safe.conf"
+    fi
     if [[ -f $E/02-archiso-speech-linux.conf ]]; then
         sed -i -E 's/^title .*/title    FurrOS Live с озвучкой/' "$E/02-archiso-speech-linux.conf"
         printf '%s\n' "furrboot-kind kernel" "furrboot-when озвучка экрана для незрячих" >> "$E/02-archiso-speech-linux.conf"
@@ -232,7 +235,7 @@ fi
 log "List of FurrOS files the installer copies to the new system"
 (
   cd "$AIR"
-  for p in usr/lib/furros/academy usr/lib/furros/drivers usr/local/bin/furros-drivers usr/local/bin/furros-update usr/local/bin/furros-brand usr/local/bin/furros-firstrun usr/local/bin/furros-wallpaper usr/local/bin/furros-set-wallpaper usr/local/bin/furros-wallpapers-app usr/local/bin/furros-pacman-hint usr/lib/furros/wallpapers usr/local/bin/furros-academy usr/local/bin/furros-welcome usr/local/bin/furros-labwc-fix \
+  for p in usr/lib/furros/academy usr/lib/furros/drivers usr/local/bin/furros-drivers usr/local/bin/furros-update usr/local/bin/furros-report usr/local/bin/furros-report-gui usr/share/applications/furros-report.desktop usr/local/bin/furros-brand usr/local/bin/furros-firstrun usr/local/bin/furros-wallpaper usr/local/bin/furros-set-wallpaper usr/local/bin/furros-wallpapers-app usr/local/bin/furros-pacman-hint usr/lib/furros/wallpapers usr/local/bin/furros-academy usr/local/bin/furros-welcome usr/local/bin/furros-labwc-fix \
            usr/local/bin/furros-about usr/local/bin/furros-lapa usr/share/applications/furros-about.desktop etc/xdg/autostart/furros-lapa.desktop usr/share/furros-staya \
            usr/share/furros usr/share/backgrounds/furros usr/share/plymouth/themes/furros usr/share/grub/themes/furros \
            usr/share/sddm/themes/furros usr/share/color-schemes/FurrOS.colors usr/share/konsole/FurrOS.profile \

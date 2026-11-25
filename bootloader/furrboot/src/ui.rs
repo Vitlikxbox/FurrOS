@@ -558,10 +558,10 @@ impl App {
                 let e = self.cfg.main_entry();
                 let title = e.map(|e| e.title.clone()).unwrap_or_else(|| "FurrOS".into());
                 let cap = e.map(|e| e.subtitle.replace(" · ", ", ")).unwrap_or_default();
-                (title, cap, if self.festive { st.say_newyear } else { st.say_main }, b'p')
+                (title, cap, if self.festive { st.say_newyear } else { st.say_main }, b'd')  // the mascot: Danyok (25.11.2026)
             }
             Item::Snapshots => (st.snapshots.into(), self.snap_summary(), st.say_snap, b'l'),
-            Item::Windows => (st.windows.into(), st.windows_sub.into(), st.say_win, b'd'),
+            Item::Windows => (st.windows.into(), st.windows_sub.into(), st.say_win, b'p'),  // b'p' = Velvet now
             Item::Safe => (st.safe.into(), st.cap_safe.into(), st.say_safe, b's'),
             Item::Kernels => {
                 let names: Vec<String> = self.cfg.kernels().iter().map(|e| e.title.clone()).collect();

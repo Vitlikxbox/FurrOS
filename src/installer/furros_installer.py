@@ -242,12 +242,21 @@ def list_disks():
         return [
             {"path": "/dev/sda", "size": 256 * 1024 ** 3, "model": "VBOX HARDDISK", "tran": "sata", "pttype": "gpt",
              "esp": "/dev/sda1", "windows": True, "free": 120 * 1024 ** 3, "parts": [
-                {"name": "sda1", "path": "/dev/sda1", "size": 100 * 1024 ** 2, "fstype": "vfat", "label": "EFI"},
+                {"name": "sda1", "path": "/dev/sda1", "size": 100 * 1024 ** 2, "fstype": "vfat", "label": "EFI", "parttype": ESP_GUID},
                 {"name": "sda2", "path": "/dev/sda2", "size": 135 * 1024 ** 3, "fstype": "ntfs", "label": "Windows"}],
              "shrink": [{"path": "/dev/sda2", "label": "Windows", "size": 135 * 1024 ** 3, "min": 60 * 1024 ** 3,
                          "probe": 0}]},
             {"path": "/dev/nvme0n1", "size": 512 * 1024 ** 3, "model": "Samsung SSD 980", "tran": "nvme",
              "pttype": "", "esp": "", "windows": False, "free": 0, "parts": [], "shrink": []},
+            # another Linux (Arch) with a partition left free for FurrOS: the "own partitions" mode
+            {"path": "/dev/sdb", "size": 476 * 1024 ** 3, "model": "Crucial MX500", "tran": "sata", "pttype": "gpt",
+             "esp": "/dev/sdb1", "windows": False, "free": 0, "shrink": [], "parts": [
+                {"name": "sdb1", "path": "/dev/sdb1", "size": 512 * 1024 ** 2, "fstype": "vfat", "label": "",
+                 "parttype": ESP_GUID},
+                {"name": "sdb2", "path": "/dev/sdb2", "size": 300 * 1024 ** 3, "fstype": "ext4", "label": "arch",
+                 "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4"},
+                {"name": "sdb3", "path": "/dev/sdb3", "size": 175 * 1024 ** 3, "fstype": "", "label": "",
+                 "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4"}]},
         ]
     live = subprocess.run(["findmnt", "-no", "SOURCE", "/run/archiso/bootmnt"], capture_output=True,
                           text=True).stdout.strip()
@@ -269,7 +278,8 @@ def list_disks():
                                      for c in children), "free": free_space(d["path"]),
                       "parts": [
                           {"name": c["name"], "path": c["path"], "size": int(c["size"]), "fstype": c.get("fstype") or "",
-                           "label": c.get("label") or ""} for c in children],
+                           "label": c.get("label") or "", "parttype": (c.get("parttype") or "").lower()}
+                          for c in children],
                       # NTFS partitions FurrOS could shrink to make room (only looked at on GPT disks with an ESP)
                       "shrink": [ntfs_shrink_info(c) for c in children if c.get("fstype") == "ntfs"]
                                 if esp and d.get("pttype") == "gpt" else []})
@@ -784,7 +794,9 @@ class DiskPage(Page):
         for code, name, desc in [
                 ("whole", tr("Весь диск"), tr("FurrOS займёт выбранный диск целиком. Всё, что на нём было, удалится")),
                 ("alongside", tr("Рядом с Windows"),
-                 tr("FurrOS встанет в свободное место, Windows останется. При включении выбираешь систему"))]:
+                 tr("FurrOS встанет в свободное место, Windows останется. При включении выбираешь систему")),
+                ("manual", tr("Свои разделы"),
+                 tr("Разметь диск сам и выбери, куда ставить. Подходит, если рядом уже стоит другой Linux"))]:
             box = QVBoxLayout()
             r = QRadioButton(name)
             r.setProperty("code", code)
@@ -815,6 +827,34 @@ class DiskPage(Page):
         self.cards_box.setSpacing(12)
         self.body.addLayout(self.cards_box)
         self.cards = []
+
+        # "own partitions": the person partitions (KDE Partition Manager is on the live medium), then picks a
+        # partition for FurrOS (formatted) and an existing EFI partition (only added to)
+        self.manual_box = QFrame()
+        self.manual_box.setObjectName("card")
+        mb = QGridLayout(self.manual_box)
+        mb.setContentsMargins(16, 12, 16, 12)
+        mb.setVerticalSpacing(8)
+        mb.addWidget(label(tr("Сначала создай раздел для FurrOS (от 20 ГБ) в менеджере разделов, потом выбери его здесь. "
+                              "Раздел EFI нужен уже существующий: загрузчик FurrOS ляжет рядом с загрузчиком другой "
+                              "системы, ничего не удаляя. Нужен режим загрузки UEFI."), "dim"), 0, 0, 1, 3)
+        mb.addWidget(label(tr("Раздел для FurrOS"), wrap=False), 1, 0)
+        self.root_combo = QComboBox()
+        mb.addWidget(self.root_combo, 1, 1, 1, 2)
+        mb.addWidget(label(tr("Раздел EFI"), wrap=False), 2, 0)
+        self.esp_combo = QComboBox()
+        mb.addWidget(self.esp_combo, 2, 1, 1, 2)
+        pm = button(tr("Открыть менеджер разделов"), "link", shadow=False)
+        pm.clicked.connect(self.open_partition_manager)
+        mb.addWidget(pm, 3, 1)
+        rf = button(tr("Обновить список"), "link", shadow=False)
+        rf.clicked.connect(self.refresh_parts)
+        mb.addWidget(rf, 3, 2)
+        mb.setColumnStretch(1, 1)
+        self.root_combo.currentIndexChanged.connect(self.root_changed)
+        self.esp_combo.currentIndexChanged.connect(self.sync)
+        self.manual_box.setVisible(False)
+        self.body.addWidget(self.manual_box)
 
         # no free space next to Windows: FurrOS takes it from the Windows partition (ntfsresize)
         self.shrink_box = QFrame()
@@ -900,7 +940,7 @@ class DiskPage(Page):
 
     def enter(self):
         bios = not self.plan.get("_uefi", True)
-        self.enc.setEnabled(not bios)
+        self.enc.setEnabled(not bios and self.mode() != "manual")
         if bios:
             self.enc.setChecked(False)
             self.enc.setToolTip(tr("Шифрование доступно только при загрузке в режиме UEFI"))
@@ -927,7 +967,47 @@ class DiskPage(Page):
             card.clicked.connect(lambda d=d: self.pick(d))
             self.cards.append((card, d, free))
             self.cards_box.addWidget(card)
+        self.fill_parts()
         self.mode_changed()
+
+    def fill_parts(self):
+        """Partitions for "own partitions": any partition of 20 GB+ that isn't an EFI or Windows' reserved one,
+        and the existing EFI partitions, with file system and label so the right one is easy to spot."""
+        keep_root, keep_esp = self.root_combo.currentData(), self.esp_combo.currentData()
+        for c in (self.root_combo, self.esp_combo):
+            c.blockSignals(True)
+            c.clear()
+        for d in self.win.disks:
+            for p in d["parts"]:
+                text = f"{p['path']} · {human(p['size'])} · {p['fstype'] or '?'}" + (f" · {p['label']}" if p['label'] else "")
+                if p.get("parttype") == ESP_GUID:
+                    self.esp_combo.addItem(f"{text} · {d['model']}", (p["path"], d["path"]))
+                elif p.get("parttype") != MSR_GUID and p["size"] >= FURROS_MIN:
+                    self.root_combo.addItem(f"{text} · {d['model']}", (p["path"], d["path"]))
+        for c, keep in ((self.root_combo, keep_root), (self.esp_combo, keep_esp)):
+            i = c.findData(keep) if keep else -1
+            c.setCurrentIndex(i if i >= 0 else (0 if c.count() else -1))
+            c.blockSignals(False)
+        if not keep_esp:
+            self.root_changed()
+
+    def root_changed(self, *_):
+        """The EFI partition of the same disk is the natural pick (another Linux there boots from it)."""
+        r = self.root_combo.currentData()
+        if r:
+            for i in range(self.esp_combo.count()):
+                if self.esp_combo.itemData(i)[1] == r[1]:
+                    self.esp_combo.setCurrentIndex(i)
+                    break
+        self.sync()
+
+    def refresh_parts(self):
+        self.win.disks = list_disks()
+        self.fill_parts()
+        self.sync()
+
+    def open_partition_manager(self):
+        subprocess.Popen(["partitionmanager"], start_new_session=True)
 
     def why_not(self, d):
         """Why this disk can't be used in the current mode ("" = it can)."""
@@ -963,8 +1043,18 @@ class DiskPage(Page):
 
     def mode_changed(self, *_):
         alongside = self.mode() == "alongside"
+        manual = self.mode() == "manual"
         self.plan["mode"] = self.mode()
         self.alongside_help.setVisible(alongside)
+        self.manual_box.setVisible(manual)
+        if manual:
+            self.enc.setChecked(False)
+        self.enc.setEnabled(self.plan.get("_uefi", True) and not manual)
+        for card, _d, _f in self.cards:
+            card.setVisible(not manual)
+        if manual:
+            self.sync()
+            return
         for card, d, free in self.cards:
             why = self.why_not(d)
             card.setEnabled(not why)
@@ -1012,6 +1102,25 @@ class DiskPage(Page):
                 err = tr("Пароли не совпадают")
         self.enc_err.setText(err)
         set_prop(self.enc_pw2, "bad", "true" if err == tr("Пароли не совпадают") else "false")
+        if self.mode() == "manual":
+            self.shrink_box.setVisible(False)
+            self.plan.pop("shrink", None)
+            r, e = self.root_combo.currentData(), self.esp_combo.currentData()
+            self.plan["root_part"] = r[0] if r else ""
+            self.plan["esp"] = e[0] if e else ""
+            self.plan["disk"] = r[1] if r else ""
+            self.plan["_disk_info"] = next((x for x in self.win.disks if r and x["path"] == r[1]), None)
+            why = self.manual_why_not()
+            if r and e and not why:
+                self.layout_preview.setText(tr("<b>Будет отформатирован:</b> &nbsp;{0} ({1}). Остальные разделы не "
+                                               "трогаются, загрузчик FurrOS ляжет в раздел EFI {2}").format(
+                    r[0], self.plan["filesystem"], e[0]))
+            else:
+                self.layout_preview.setText("")
+            self.mode_note.setText(why)
+            self.mode_note.setVisible(bool(why))
+            self.changed.emit()
+            return
         d = self.plan.get("_disk_info")
         sh = self.shrink_plan(d)
         self.shrink_box.setVisible(bool(sh))
@@ -1065,7 +1174,18 @@ class DiskPage(Page):
         self.mode_note.setVisible(bool(reasons))
         self.changed.emit()
 
+    def manual_why_not(self):
+        if not self.plan.get("_uefi", True):
+            return tr("Установка на свои разделы работает только в режиме UEFI")
+        if not self.root_combo.count():
+            return tr("Нет раздела от 20 ГБ: создай его в менеджере разделов и нажми «Обновить список»")
+        if not self.esp_combo.count():
+            return tr("Нет раздела EFI: создай раздел FAT32 с типом «EFI System» (от 300 МБ) или выбери другой режим")
+        return ""
+
     def valid(self):
+        if self.mode() == "manual":
+            return bool(self.plan.get("root_part") and self.plan.get("esp")) and not self.manual_why_not()
         d = self.plan.get("_disk_info")
         return bool(self.plan.get("disk")) and d is not None and not self.why_not(d) and not self.enc_err.text()
 
@@ -1430,6 +1550,8 @@ def boot_menu_text(p):
         return tr("Limine с темой FurrOS (компьютер без UEFI)")
     if p.get("mode") == "alongside" and not (p.get("filesystem") == "btrfs" and not p.get("encrypt")):
         return tr("GRUB с темой FurrOS, в нём есть Windows")
+    if p.get("mode") == "manual" and p.get("filesystem") != "btrfs":
+        return tr("GRUB с темой FurrOS, в нём есть другие системы")
     return tr("FurrBoot — меню FurrOS с мышью и снимками системы (запасной: GRUB)")
 
 
@@ -1473,7 +1595,9 @@ class SummaryPage(Page):
         rows = [
             (tr("Язык и регион"), tr('{0}, {1}, раскладки: {2}').format(loc, p['timezone'], ', '.join(p['layouts'])), 3),
             (tr("Диск"), (tr('<b>Рядом с Windows</b>, в свободных {0} · ').format(human(p['_disk_info'].get('free', 0)))
-                         if p.get('mode') == 'alongside' else '') +
+                         if p.get('mode') == 'alongside' else
+                         tr('<b>Свои разделы</b>: FurrOS на {0}, EFI {1} · ').format(p.get('root_part', ''), p.get('esp', ''))
+                         if p.get('mode') == 'manual' else '') +
              tr('{0} ({1}), {2}, подкачка: {3}{4}').format(p['disk'], human(p['_disk_info']['size']), p['filesystem'], swap, tr(', <b>шифрование</b>') if p.get('encrypt') else ''), 4),
             (tr("Рабочий стол"), tr(de["name"]), 5),
             (tr("Программы"), (", ".join(apps) or tr("ничего лишнего")) + " · " + tr("Ядро: {0}").format(
@@ -1503,6 +1627,12 @@ class SummaryPage(Page):
                 "Ноутбук поставь на зарядку: если выключить компьютер, пока раздел сжимается, данные можно потерять. "
                 "При первом запуске Windows проверит диск — дождись конца.").format(p["shrink"]["part"], human(p["shrink"]["bytes"])))
             self.confirm.setText(tr("Я сделал(а) копию важных файлов и готов(а) ставить рядом с Windows"))
+        elif p.get("mode") == "manual":
+            self.danger_text.setText(tr(
+                "<b style='font-size:17px; color:#FF8C94'>⚠ Раздел {0} будет отформатирован, всё на нём исчезнет.</b><br>"
+                "Другие разделы не трогаются, в раздел EFI {1} только добавится загрузчик FurrOS. Проверь, что выбран "
+                "нужный раздел, и сделай копию важных файлов.").format(p.get("root_part", ""), p.get("esp", "")))
+            self.confirm.setText(tr("Я проверил(а) раздел и готов(а) его отформатировать"))
         elif p.get("mode") == "alongside":
             self.danger_text.setText(tr(
                 "<b style='font-size:17px; color:#FF8C94'>⚠ FurrOS займёт свободное место на {0} ({1}, {2}).</b><br>"
@@ -1537,13 +1667,13 @@ TIPS = [
 # (picture in usr/share/furros/slides, title, text): the slideshow shown while FurrOS installs
 SLIDES = [
     ("furrboot", "Твоё меню загрузки: FurrBoot",
-     "При включении тебя встретит Пикси. Стрелки или мышь выбирают, Enter запускает, T меняет тему."),
+     "При включении тебя встретит Данёк. Стрелки или мышь выбирают, Enter запускает, T меняет тему."),
     ("snapshots", "Машина времени",
      "На Btrfs перед каждым обновлением FurrOS делает снимок системы. Что-то сломалось? Выбери снимок прямо в меню загрузки."),
     ("academy", "Школа Лапы",
      "После первого входа откроется Школа Лапы: 14 глав, тесты и терминал-песочница, где ничего не сломаешь."),
     ("wallpapers", "Обои на любой вкус",
-     "Статичные и живые обои с Лапой, Пикси и Даньком меняются в приложении «Обои FurrOS»."),
+     "Статичные и живые обои с Лапой, Велвет, Мими и Даньком меняются в приложении «Обои FurrOS»."),
     ("update", "Обновления одной командой",
      "<b>furros-update</b> обновит систему, AUR и Flatpak разом, а FurrOS сама напомнит, когда пора."),
     ("keys", "Забыл клавиши?",
@@ -1745,7 +1875,7 @@ class FinishPage(Page):
         if ok:
             self.win.header_title.setText(tr("FurrOS установлена! 🎉"))
             self.msg.setText(tr("Ура! Система готова. Вытащи установочную флешку (или диск из виртуальной машины) "
-                             "и перезагрузись.<br><br>После входа тебя встретит Пикси, а потом я покажу, "
+                             "и перезагрузись.<br><br>После входа тебя встретит Данёк, а потом я покажу, "
                              "где тут что, в «Школе Лапы». <b>Гав!</b>"))
             mascot = SHARE / "mascot" / "mascot-small.png"
             self.img.setPixmap(pix(mascot if mascot.exists() else SHARE / "lapa" / "lapa-wave-small.png", h=420))
@@ -1762,6 +1892,10 @@ class FinishPage(Page):
             b = button(tr("Попробовать снова"), "primary")
             b.clicked.connect(lambda: self.win.go(self.win.pages.index(self.win.summary)))
             self.buttons.addWidget(b)
+            # one file with the log, the disks and the graphics card, saved to a USB stick or shared as a link
+            r = button(tr("Отчёт об ошибке"))
+            r.clicked.connect(lambda: subprocess.Popen(["furros-report-gui"], start_new_session=True) if LINUX else None)
+            self.buttons.addWidget(r)
             s = button(tr("Закрыть"))
             s.clicked.connect(QApplication.quit)
             self.buttons.addWidget(s)
@@ -1959,6 +2093,12 @@ def main():
             if k == 10:  # dev helper: the install page's slideshow, --slide N picks the slide
                 for _ in range(int(sys.argv[sys.argv.index("--slide") + 1]) + 1 if "--slide" in sys.argv else 1):
                     w.pages[10].next_tip()
+            if k == 4 and "--manual" in sys.argv:  # dev helper: show the "own partitions" mode
+                disk_page = w.pages[4]
+                next(b for b in disk_page.mode_group.buttons() if b.property("code") == "manual").setChecked(True)
+                i = disk_page.root_combo.findText("/dev/sdb3", Qt.MatchStartsWith)
+                if i >= 0:
+                    disk_page.root_combo.setCurrentIndex(i)
             if k == 4 and "--alongside" in sys.argv:  # dev helper: show the dual boot variant
                 disk_page = w.pages[4]
                 next(b for b in disk_page.mode_group.buttons() if b.property("code") == "alongside").setChecked(True)

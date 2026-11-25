@@ -9,6 +9,8 @@ import json
 import os
 import re
 import shutil
+import socket
+import ssl
 import subprocess
 import sys
 import time
@@ -37,6 +39,34 @@ def human(n, ru=True):
         n /= 1024
 
 
+def _ssl_context():
+    """The system's trusted roots plus Mozilla's list (certifi, bundled into the exe and the AppImage). Python on
+    Windows sees only the roots Windows has already cached, and an AppImage built on Ubuntu looks for them where Ubuntu
+    keeps them: either way GitHub's certificate can fail to verify ("Нет связи с GitHub", tester reports 25.11)."""
+    ctx = ssl.create_default_context()
+    try:
+        import certifi
+        ctx.load_verify_locations(certifi.where())
+    except (ImportError, OSError, ssl.SSLError):
+        pass
+    return ctx
+
+
+SSL_CTX = _ssl_context()
+
+
+def _why(e):
+    """A short reason for a network error, shown in the window so a report tells us what really happened."""
+    r = getattr(e, "reason", e)
+    if isinstance(r, ssl.SSLCertVerificationError) or "CERTIFICATE_VERIFY_FAILED" in str(r):
+        return "сертификат / certificate"
+    if isinstance(r, (TimeoutError, socket.timeout)) or "timed out" in str(r):
+        return "таймаут / timeout"
+    if isinstance(r, socket.gaierror):
+        return "DNS"
+    return (type(r).__name__ + (f": {r}" if str(r) else ""))[:80]
+
+
 def _request(url, token=None, accept=None, start=0, timeout=60):
     headers = {"User-Agent": UA}
     if token:
@@ -45,7 +75,7 @@ def _request(url, token=None, accept=None, start=0, timeout=60):
         headers["Accept"] = accept
     if start:
         headers["Range"] = f"bytes={start}-"
-    return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=timeout)
+    return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=timeout, context=SSL_CTX)
 
 
 class Build:
@@ -87,8 +117,18 @@ def find_build(repo=REPO, tag=None, token=None):
     # with push access (testers are collaborators), and a draft may still be uploading, so drafts are skipped
     path = f"releases/tags/{tag}" if tag else "releases?per_page=20"
     try:
-        with _request(f"https://api.github.com/repos/{repo}/{path}", token, "application/vnd.github+json", timeout=30) as r:
-            data = json.load(r)
+        for attempt in range(3):  # a flaky connection (or a VPN still connecting) gets two more tries
+            try:
+                with _request(f"https://api.github.com/repos/{repo}/{path}", token, "application/vnd.github+json",
+                              timeout=30) as r:
+                    data = json.load(r)
+                break
+            except urllib.error.HTTPError:
+                raise
+            except (urllib.error.URLError, OSError):
+                if attempt == 2:
+                    raise
+                time.sleep(3)
     except urllib.error.HTTPError as e:
         if e.code in (401, 403) and token:
             raise DLError("GitHub не принял токен: проверь, что он скопирован целиком и не истёк",
@@ -102,9 +142,17 @@ def find_build(repo=REPO, tag=None, token=None):
                               need_token=True) from e
             raise DLError("Сборка не найдена. Возможно, она ещё не опубликована",
                           "Build not found. It may not be published yet") from e
+        if e.code in (403, 429) and not token:
+            # 60 requests an hour per IP without a token; VPN and mobile IPs are shared, so the limit runs out fast
+            raise DLError("GitHub временно ограничил запросы с этого адреса (так бывает с VPN). Подожди минут 10–15 "
+                          "или выключи VPN и попробуй снова",
+                          "GitHub is limiting requests from this address for now (common with VPNs). Wait 10–15 "
+                          "minutes or turn the VPN off and try again") from e
         raise DLError(f"GitHub ответил ошибкой {e.code}", f"GitHub answered with error {e.code}") from e
     except (urllib.error.URLError, OSError) as e:
-        raise DLError("Нет связи с GitHub. Проверь интернет", "Can't reach GitHub. Check the internet") from e
+        why = _why(e)
+        raise DLError(f"Нет связи с GitHub ({why}). Проверь интернет или попробуй с VPN",
+                      f"Can't reach GitHub ({why}). Check the internet or try a VPN") from e
     if tag:
         return Build(data, token)
     # the list is sorted by the tag's date, not by publication: releases whose tags point at the same commit come

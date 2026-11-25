@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FurrOS welcome popup: a small tour with Pixie on the first login after installation (like GNOME Tour).
+"""FurrOS welcome popup: a small tour with Danyok on the first login after installation (like GNOME Tour).
 When it closes, Lapa's School opens.   furros-welcome [--no-school] [--screenshot out.png [page]]"""
 import os
 import shutil
@@ -21,7 +21,7 @@ DISCORD, TELEGRAM = "https://discord.gg/ZA3GuBYKwG", "https://t.me/FurrOS_Linux"
 T = {
     "ru": {"pages": [
         ("mascot/mascot-small.png", "Добро пожаловать в FurrOS!",
-         "Привет, я <b>Пикси</b>! 🐾 Система установлена и готова к работе. Давай я быстро покажу, что тут есть."),
+         "Привет, я <b>Данёк</b>! 🐾 Система установлена и готова к работе. Давай я быстро покажу, что тут есть."),
         (None, "Всё уже настроено",
          "⟳ &nbsp;<b>Обновления</b> одной командой <code>furros-update</code>, перед ними делается снимок системы<br>"
          "⏪ &nbsp;<b>Снимки системы</b>: если что-то сломалось, откатись прямо из меню загрузки<br>"
@@ -36,7 +36,7 @@ T = {
         "help": "Вопросы? Мы в <a style='color:#FF8CBE' href='{d}'>Discord</a> и <a style='color:#FF8CBE' href='{t}'>Telegram</a>"},
     "en": {"pages": [
         ("mascot/mascot-small.png", "Welcome to FurrOS!",
-         "Hi, I'm <b>Pixie</b>! 🐾 The system is installed and ready. Let me quickly show you around."),
+         "Hi, I'm <b>Danyok</b>! 🐾 The system is installed and ready. Let me quickly show you around."),
         (None, "Everything is already set up",
          "⟳ &nbsp;<b>Updates</b> with one command, <code>furros-update</code>, with a system snapshot first<br>"
          "⏪ &nbsp;<b>System snapshots</b>: if something breaks, roll back right from the boot menu<br>"
@@ -51,7 +51,7 @@ T = {
         "help": "Questions? We're on <a style='color:#FF8CBE' href='{d}'>Discord</a> and <a style='color:#FF8CBE' href='{t}'>Telegram</a>"},
     "pl": {"pages": [
         ("mascot/mascot-small.png", "Witaj w FurrOS!",
-         "Cześć, jestem <b>Pixie</b>! 🐾 System jest zainstalowany i gotowy. Pokażę ci szybko, co tu jest."),
+         "Cześć, jestem <b>Danyok</b>! 🐾 System jest zainstalowany i gotowy. Pokażę ci szybko, co tu jest."),
         (None, "Wszystko jest już ustawione",
          "⟳ &nbsp;<b>Aktualizacje</b> jednym poleceniem <code>furros-update</code>, najpierw migawka systemu<br>"
          "⏪ &nbsp;<b>Migawki systemu</b>: jeśli coś się zepsuje, wróć prosto z menu startowego<br>"
@@ -66,7 +66,7 @@ T = {
         "help": "Pytania? Jesteśmy na <a style='color:#FF8CBE' href='{d}'>Discordzie</a> i <a style='color:#FF8CBE' href='{t}'>Telegramie</a>"},
     "es": {"pages": [
         ("mascot/mascot-small.png", "¡Bienvenido a FurrOS!",
-         "¡Hola, soy <b>Pixie</b>! 🐾 El sistema está instalado y listo. Te enseño rápido lo que hay."),
+         "¡Hola, soy <b>Danyok</b>! 🐾 El sistema está instalado y listo. Te enseño rápido lo que hay."),
         (None, "Todo está ya configurado",
          "⟳ &nbsp;<b>Actualizaciones</b> con un solo comando, <code>furros-update</code>, con una instantánea antes<br>"
          "⏪ &nbsp;<b>Instantáneas</b>: si algo se rompe, vuelve atrás desde el menú de arranque<br>"

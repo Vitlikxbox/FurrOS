@@ -152,6 +152,35 @@ if ! pacman -Qq gvfs >/dev/null 2>&1; then
           "Instaluję gvfs, żeby pendrive'y i dyski były widoczne w menedżerze plików" "Instalo gvfs para que los USB y discos aparezcan en el gestor de archivos")"
     sudo pacman -S --needed --noconfirm gvfs
 fi
+# 25.11.2026: the artist taroyadda left FurrOS and asked to remove her works. The package update has already deleted
+# her wallpapers and avatars; what the installer copied out of the packages stays behind: the account picture and a
+# chosen wallpaper. Her old account pictures are recognised by their SHA-256 and become Danyok (the mascot now);
+# a wallpaper that pointed at her pictures or live wallpapers becomes Danyok's wallpaper.
+TARO_AV="11e0d1d3f5dc74ec81ef89f2f5081d5c4593ec18a80fda72ecbdd001b90f984a 56622fd174d14f45c3a893a9f56dd0b4ab9d24c60f5c835bd8aa00466154b13d"
+DANYOK_AV=/usr/share/furros/avatars/furros-danyok.png
+if [[ -f $DANYOK_AV ]]; then
+    changed_av=""
+    for f in "/var/lib/AccountsService/icons/$USER" "/usr/share/sddm/faces/$USER.face.icon" "$HOME/.face.icon" "$HOME/.face"; do
+        [[ -f $f ]] || continue
+        sum=$(sha256sum "$f" 2>/dev/null | cut -d' ' -f1)
+        [[ " $TARO_AV " == *" $sum "* ]] || continue
+        if [[ -w $f ]]; then cp -f "$DANYOK_AV" "$f"; else sudo install -m644 "$DANYOK_AV" "$f"; fi
+        changed_av=1
+    done
+    [[ -n $changed_av ]] && say "Аватар заменён на Данька." "Your account picture is now Danyok." \
+                                "Awatar zmieniony na Danyoka." "Tu avatar ahora es Danyok."
+fi
+taro_re='taroyadda|furros-mascot|anim-(lemonade|take-my-meds|trust-me)'
+cur=$(readlink -f /usr/share/backgrounds/furros/current.png 2>/dev/null)
+wconf="${XDG_CONFIG_HOME:-$HOME/.config}/furros/wallpaper.conf"
+if { [[ -n $cur && ! -e $cur ]]; } || grep -qE "$taro_re" <<<"$cur $(cat "$wconf" 2>/dev/null) $(grep '^WALLPAPER' /etc/furros/settings.conf 2>/dev/null)"; then
+    sudo sed -i -E "/^WALLPAPER_VIDEO=.*($taro_re)/s|=.*|=|" /etc/furros/settings.conf 2>/dev/null
+    furros-set-wallpaper /usr/share/backgrounds/furros/furros-danyok.png >/dev/null 2>&1 \
+        && say "Обои сменились на обои с Даньком: прежних больше нет в FurrOS." \
+               "Your wallpaper is now Danyok's: the previous one is no longer part of FurrOS." \
+               "Tapeta zmieniona na tapetę z Danyokiem: poprzedniej nie ma już w FurrOS." \
+               "Tu fondo ahora es el de Danyok: el anterior ya no forma parte de FurrOS."
+fi
 if command -v yay >/dev/null; then
     c "$(say "Пакеты из AUR (yay)" "AUR packages (yay)" "Pakiety z AUR (yay)" "Paquetes de AUR (yay)")"
     # no build menus (clean / diff / edit): they are for packagers and only confuse (yay(8))

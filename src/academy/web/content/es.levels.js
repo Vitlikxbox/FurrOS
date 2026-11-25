@@ -1,20 +1,20 @@
-/* Lapa's School, levels 2 and 3: Pixie (a confident user) and Danyok (the system inside out). 14 chapters each. */
+/* Lapa's School, levels 2 and 3: Velvet (a confident user) and Danyok (the system inside out). 14 chapters each. */
 Object.assign(window.CONTENT.es.ui, {
   levelsTitle: "Niveles", level: "Nivel",
-  levelsIntro: "Tres profes, y con cada uno más difícil. Lapa te enseña a vivir en FurrOS, Pixie a dominar el sistema con soltura y Danyok a desmontarlo hasta el último tornillo.",
-  lvl_lapa: "Lapa", lvl_pixie: "Pixie", lvl_danyok: "Danyok",
+  levelsIntro: "Tres profes, y con cada uno más difícil. Lapa te enseña a vivir en FurrOS, Velvet a dominar el sistema con soltura y Danyok a desmontarlo hasta el último tornillo.",
+  lvl_lapa: "Lapa", lvl_pixie: "Velvet", lvl_danyok: "Danyok",
   diff_lapa: "principiante", diff_pixie: "usuario con soltura", diff_danyok: "maestro del sistema",
   lvlIntro_lapa: "El escritorio, archivos, terminal, programas, juegos y primeros auxilios.",
   lvlIntro_pixie: "Tuberías, procesos, servicios, discos, red, SSH, el AUR y tus propios scripts.",
   lvlIntro_danyok: "Arranque, kernel, Btrfs, tus propios servicios, contenedores, máquinas virtuales, cifrado y reparaciones extremas.",
-  lvlHello_lapa: "Nivel de Lapa 🐾", lvlHello_pixie: "Ey, soy Pixie. Ahora enseño yo 🖤", lvlHello_danyok: "Buenas. Soy Danyok y tengo un limón 🍋",
+  lvlHello_lapa: "Nivel de Lapa 🐾", lvlHello_pixie: "Ey, soy Velvet. Ahora enseño yo 🖤", lvlHello_danyok: "Buenas. Soy Danyok y tengo un limón 🍋",
   lvlText_lapa: "Lo básico: cómo vivir en FurrOS sin miedo a nada. Empieza aquí si Linux es nuevo para ti.",
   lvlText_pixie: "Lapa te enseñó a no temer a la terminal. Yo te enseñaré a mandar en ella: encadenar comandos, encontrar cualquier cosa, gestionar procesos y servicios, saltar a otros ordenadores por SSH y escribir tus propios scripts. Será un poco más difícil, pero luego harás en un minuto lo que antes te llevaba una hora.",
   lvlText_danyok: "El último nivel. Nos metemos dentro: cómo arranca el sistema, qué hace el kernel, cómo funcionan Btrfs y systemd, cómo crear tu propio paquete, levantar un contenedor y una máquina virtual, cifrar un disco y resucitar el sistema. Sin prisa, y prueba todo en una máquina virtual o con una instantánea reciente.",
   lvlFirst: "Te recomendamos terminar antes el nivel «{0}». Pero si te sientes con confianza, adelante.",
-  says_pixie: "Pixie dice", says_danyok: "Danyok dice",
+  says_pixie: "Velvet dice", says_danyok: "Danyok dice",
   nextLevel: "Siguiente: {0}",
-  diplomaTitle_pixie: "Diploma de Pixie 🎓", diplomaText_pixie: "Has terminado el nivel de usuario con soltura: tuberías, procesos, servicios, discos, red, SSH, el AUR y scripts. Ahora la terminal trabaja para ti, y no al revés. Pixie lo aprueba 🖤",
+  diplomaTitle_pixie: "Diploma de Velvet 🎓", diplomaText_pixie: "Has terminado el nivel de usuario con soltura: tuberías, procesos, servicios, discos, red, SSH, el AUR y scripts. Ahora la terminal trabaja para ti, y no al revés. Velvet lo aprueba 🖤",
   diplomaTitle_danyok: "Diploma de Danyok 🎓🍋", diplomaText_danyok: "Has terminado los tres niveles de la Escuela de Lapa. Arranque, kernel, Btrfs, systemd, paquetes, contenedores, cifrado y reparaciones ya son tuyos. Eres oficialmente maestro de FurrOS. Toma un limón 🍋",
 });
 
@@ -129,7 +129,7 @@ window.CONTENT.es.levels = {
           { cmd: "diff -u old.conf new.conf", note: "En qué se diferencian dos archivos: - quitado, + añadido." },
           { cmd: "sed -i 's/viejo/nuevo/g' archivo.txt", noRun: true, note: "Reemplazar en todo el archivo. Sin -i solo muestra el resultado y no toca el archivo." },
           { warn: "sed -i cambia el archivo al momento. Antes de tocar configuraciones del sistema, haz una copia: <code>sudo cp archivo archivo.bak</code>." },
-          { say: "Truco de Pixie: <code>sed</code> sin <code>-i</code> es una vista previa. Primero miro, luego añado -i. Ni una configuración rota, miau 🖤" },
+          { say: "Truco de Velvet: <code>sed</code> sin <code>-i</code> es una vista previa. Primero miro, luego añado -i. Ni una configuración rota, miau 🖤" },
         ] },
       ],
       quiz: [
@@ -388,12 +388,12 @@ window.CONTENT.es.levels = {
     },
     {
       id: "p-script", mood: "wave", badge: "⚡ Scriptera", title: "Tus propios scripts",
-      intro: "shebang, variables, condiciones, bucles, argumentos y la graduación de Pixie.",
+      intro: "shebang, variables, condiciones, bucles, argumentos y la graduación de Velvet.",
       lessons: [
         { title: "Tu primer script", blocks: [
           { p: "Un script es un archivo de texto con comandos. La primera línea (el <b>shebang</b>) dice con qué se ejecuta:" },
           { cmd: "#!/bin/bash\nset -euo pipefail\nname=${1:-amigo}\necho \"¡Hola, $name! Hoy es $(date +%A)\"", noRun: true, note: "set -euo pipefail: parar en el primer error. $1 es el primer argumento, :-amigo un valor por defecto. $(…) inserta la salida de un comando." },
-          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Crear el script y hacerlo ejecutable. Luego basta con: hello Pixie" },
+          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Crear el script y hacerlo ejecutable. Luego basta con: hello Velvet" },
         ] },
         { title: "Condiciones y bucles", blocks: [
           { cmd: "if [ -f ~/.bashrc ]; then\n  echo \"bashrc existe\"\nelse\n  echo \"no hay bashrc\"\nfi", noRun: true, note: "-f existe el archivo, -d carpeta, -z texto vacío. ¡Los espacios dentro de [ ] son obligatorios!" },
@@ -772,7 +772,7 @@ window.CONTENT.es.levels = {
             "La <b>Arch Wiki</b> la escriben usuarios como tú. ¿Ves algo mal? Corrígelo: es el mejor regalo al mundo Linux.",
             "Ayuda a los novatos en el chat: explicárselo a otro es la mejor forma de entenderlo tú.",
           ] },
-          { say: "Eso es todo. Tres profes, cuarenta y dos capítulos. Has pasado de «qué es una terminal» a chroot y tus propios paquetes. Lapa está orgullosa, Pixie lo aprueba, y de mi parte, un limón. Te lo has ganado 🍋🎓" },
+          { say: "Eso es todo. Tres profes, cuarenta y dos capítulos. Has pasado de «qué es una terminal» a chroot y tus propios paquetes. Lapa está orgullosa, Velvet lo aprueba, y de mi parte, un limón. Te lo has ganado 🍋🎓" },
         ] },
       ],
       quiz: [

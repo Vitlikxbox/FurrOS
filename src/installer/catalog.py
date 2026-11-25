@@ -221,8 +221,6 @@ APP_BUNDLES = [
 
 WALLPAPERS = [
     ("furros-default.png", "FurrOS"),
-    ("furros-mascot.png", "Пикси"),
-    ("furros-mascot-stripes.png", "Пикси: полоски"),
     ("furros-pixie-lying.png", "Пикси: лежит"),
     ("furros-lapa-wave.png", "Лапа: привет"),
     ("furros-lapa-timer.png", "Лапа: таймер"),
@@ -230,10 +228,9 @@ WALLPAPERS = [
     ("furros-lapa-hoodie.png", "Лапа: худи"),
     ("furros-lapa-sip.png", "Лапа: прочитано"),
     ("furros-lapa-heart.png", "Лапа: ♥"),
-    ("furros-taroyadda-pointing.png", "Тарояда: эй, ты!"),
-    ("furros-taroyadda-cozy.png", "Тарояда: уютно"),
-    ("furros-taroyadda-standing.png", "Тарояда: хмм"),
-    ("furros-taroyadda-sassy.png", "Тарояда: дерзко"),
+    ("furros-velvet.png", "Велвет"),
+    ("furros-velvet-2.png", "Велвет: вкусняшка"),
+    ("furros-mimi.png", "Мими"),
     ("furros-bubblegum.png", "Bubblegum"),
     ("furros-danyok.png", "Данёк"),
     ("furros-danyok-lemon.png", "Данёк: лимон"),
@@ -258,9 +255,6 @@ ANIMATED = [
     ("anim-you-got-curves", "You Got Curves", False),
     ("anim-do-not-push", "Do Not Push", False),
     ("anim-if-i-take-you-home", "If I Take You Home", False),
-    ("anim-take-my-meds", "Take My Meds", False),
-    ("anim-lemonade", "Lemonade", False),
-    ("anim-trust-me", "Trust Me", False),
     # 13.11.2026: Typh, sashley, Oniixide, RIGOR MORT1S clips (art/yt-new -> tools/make_anim_new.sh)
     ("anim-pretty-cvnt", "Pretty Cvnt", True),
     ("anim-paper-planes", "Paper Planes", True),

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# furros-report: everything that helps find a FurrOS bug, in one text file to attach to a Discord post or a GitHub issue.
+#   furros-report           write ~/furros-report-<date>.txt and print its path
+#   furros-report --share   the same, then upload it to paste.rs and print the link (the window asks first)
+# What goes in: FurrOS/kernel/boot mode, graphics and network cards, memory, disks, the FurrOS packages, errors of this
+# and the previous boot, failed services, the installer's log. What doesn't: passwords (the installer never logs them),
+# the user and computer names, the full name, IP and MAC addresses — they are replaced before saving.
+set -u
+share=0
+[[ ${1:-} == --share ]] && share=1
+f="$HOME/furros-report-$(date +%Y%m%d-%H%M%S).txt"
+
+sec() { printf '\n===== %s =====\n' "$*"; }
+run() { "$@" 2>&1 || true; }
+
+collect() {
+    echo "FurrOS report · $(date -u '+%Y-%m-%d %H:%M UTC')"
+    sec "System"
+    grep -E '^(NAME|VERSION|BUILD_ID|IMAGE_VERSION)=' /etc/os-release 2>/dev/null
+    [[ -f /etc/furros/settings.conf ]] && grep -E '^(DESKTOP|KERNEL|UI_LANG|WALLPAPER)' /etc/furros/settings.conf
+    [[ -d /run/archiso ]] && echo "live medium: yes"
+    echo "kernel: $(uname -r)"
+    echo "boot: $([[ -d /sys/firmware/efi ]] && echo UEFI || echo BIOS)"
+    echo "cmdline: $(cat /proc/cmdline)"
+    echo "session: ${XDG_CURRENT_DESKTOP:-?} / ${XDG_SESSION_TYPE:-?}"
+    sec "Graphics and network"
+    run lspci -nnk | grep -A3 -E 'VGA|3D|Display|Network|Ethernet'
+    sec "Memory"
+    run free -h
+    sec "Disks"
+    run lsblk -o NAME,SIZE,TYPE,FSTYPE,PARTTYPENAME,MOUNTPOINTS,TRAN,RO,MODEL
+    sec "Packages"
+    pacman -Q linux linux-furros linux-zen linux-lts nvidia-open nvidia-open-dkms nvidia-utils mesa furrboot \
+        furros-branding furros-academy furros-wallpapers furros-drivers 2>/dev/null
+    command -v dkms >/dev/null && { sec "DKMS"; run dkms status; }
+    sec "Failed services"
+    run systemctl --failed --no-legend --plain
+    sec "Errors this boot (last 150)"
+    run journalctl -b -p 3 --no-pager -q | tail -n 150
+    sec "Errors previous boot (last 60)"
+    run journalctl -b -1 -p 3 --no-pager -q | tail -n 60
+    for log in /tmp/furros-install.log /var/log/furros-install.log; do
+        [[ -r $log ]] || continue
+        sec "Installer log $log (last 400 lines)"
+        tail -n 400 "$log"
+        break
+    done
+}
+
+# the person's names and addresses never leave the computer
+redact() {
+    local u=${USER:-} h
+    h=$(cat /etc/hostname 2>/dev/null || hostname 2>/dev/null)
+    sed -E \
+        -e 's/"(fullname|username|hostname)": "[^"]*"/"\1": "***"/g' \
+        -e 's/([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}/<mac>/g' \
+        -e 's/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/<ip>/g' \
+        -e 's/\b([0-9a-fA-F]{1,4}:){3,7}[0-9a-fA-F]{1,4}\b/<ip6>/g' |
+    if [[ -n $u && $u != root && $u != furry ]]; then sed -E "s/\b$u\b/<user>/g"; else cat; fi |
+    if [[ -n $h && $h != furros && $h != archiso ]]; then sed -E "s/\b$h\b/<host>/g"; else cat; fi
+}
+
+collect | redact > "$f"
+echo "$f"
+if ((share)); then
+    url=$(curl -fsS --max-time 60 --data-binary @"$f" https://paste.rs/ 2>/dev/null) || {
+        echo "upload failed" >&2
+        exit 1
+    }
+    echo "$url"
+fi

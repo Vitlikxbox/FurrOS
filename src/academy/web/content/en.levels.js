@@ -1,20 +1,20 @@
-/* Lapa's School, levels 2 and 3: Pixie (a confident user) and Danyok (the system inside out). 14 chapters each. */
+/* Lapa's School, levels 2 and 3: Velvet (a confident user) and Danyok (the system inside out). 14 chapters each. */
 Object.assign(window.CONTENT.en.ui, {
   levelsTitle: "Levels", level: "Level",
-  levelsIntro: "Three teachers, each one harder. Lapa teaches you to live in FurrOS, Pixie to command the system with confidence, Danyok to take it apart down to the last screw.",
-  lvl_lapa: "Lapa", lvl_pixie: "Pixie", lvl_danyok: "Danyok",
+  levelsIntro: "Three teachers, each one harder. Lapa teaches you to live in FurrOS, Velvet to command the system with confidence, Danyok to take it apart down to the last screw.",
+  lvl_lapa: "Lapa", lvl_pixie: "Velvet", lvl_danyok: "Danyok",
   diff_lapa: "beginner", diff_pixie: "confident user", diff_danyok: "system master",
   lvlIntro_lapa: "The desktop, files, terminal, apps, games and first aid.",
   lvlIntro_pixie: "Pipes, processes, services, disks, network, SSH, the AUR and your own scripts.",
   lvlIntro_danyok: "Boot, the kernel, Btrfs, your own services, containers, VMs, encryption and hardcore repairs.",
-  lvlHello_lapa: "Lapa's level 🐾", lvlHello_pixie: "Yo, I'm Pixie. I'm teaching now 🖤", lvlHello_danyok: "Hey. I'm Danyok, and I have a lemon 🍋",
+  lvlHello_lapa: "Lapa's level 🐾", lvlHello_pixie: "Yo, I'm Velvet. I'm teaching now 🖤", lvlHello_danyok: "Hey. I'm Danyok, and I have a lemon 🍋",
   lvlText_lapa: "The basics: how to live in FurrOS without fear. Start here if Linux is new to you.",
   lvlText_pixie: "Lapa taught you not to fear the terminal. I'll teach you to command it: chain commands, find anything, manage processes and services, hop to other computers over SSH and write your own scripts. It gets a bit harder, but afterwards you'll do in a minute what used to take an hour.",
   lvlText_danyok: "The last level. We're going inside: how the system boots, what the kernel does, how Btrfs and systemd work, how to build your own package, run a container and a VM, encrypt a disk and raise the system from the dead. Take your time, and try things in a VM or with a fresh snapshot.",
   lvlFirst: "We suggest finishing the “{0}” level first. But if you feel confident, go right ahead.",
-  says_pixie: "Pixie says", says_danyok: "Danyok says",
+  says_pixie: "Velvet says", says_danyok: "Danyok says",
   nextLevel: "Next: {0}",
-  diplomaTitle_pixie: "Pixie's diploma 🎓", diplomaText_pixie: "You've finished the confident user level: pipes, processes, services, disks, network, SSH, the AUR and scripts. The terminal works for you now, not the other way round. Pixie approves 🖤",
+  diplomaTitle_pixie: "Velvet's diploma 🎓", diplomaText_pixie: "You've finished the confident user level: pipes, processes, services, disks, network, SSH, the AUR and scripts. The terminal works for you now, not the other way round. Velvet approves 🖤",
   diplomaTitle_danyok: "Danyok's diploma 🎓🍋", diplomaText_danyok: "You've finished all three levels of Lapa's School. Boot, the kernel, Btrfs, systemd, packages, containers, encryption and repairs are all yours now. You're officially a FurrOS master. Have a lemon 🍋",
 });
 
@@ -129,7 +129,7 @@ window.CONTENT.en.levels = {
           { cmd: "diff -u old.conf new.conf", note: "How two files differ: - removed, + added." },
           { cmd: "sed -i 's/old/new/g' file.txt", noRun: true, note: "Replace everywhere in the file. Without -i it only shows the result and leaves the file alone." },
           { warn: "sed -i edits the file immediately. Before touching system configs, make a copy: <code>sudo cp file file.bak</code>." },
-          { say: "Pixie hack: <code>sed</code> without <code>-i</code> is a preview. I look first, then add -i. Not one broken config, purr 🖤" },
+          { say: "Velvet hack: <code>sed</code> without <code>-i</code> is a preview. I look first, then add -i. Not one broken config, purr 🖤" },
         ] },
       ],
       quiz: [
@@ -388,12 +388,12 @@ window.CONTENT.en.levels = {
     },
     {
       id: "p-script", mood: "wave", badge: "⚡ Scripter", title: "Your own scripts",
-      intro: "shebang, variables, conditions, loops, arguments and Pixie's graduation.",
+      intro: "shebang, variables, conditions, loops, arguments and Velvet's graduation.",
       lessons: [
         { title: "Your first script", blocks: [
           { p: "A script is a text file full of commands. The first line (the <b>shebang</b>) says what runs it:" },
           { cmd: "#!/bin/bash\nset -euo pipefail\nname=${1:-friend}\necho \"Hi, $name! Today is $(date +%A)\"", noRun: true, note: "set -euo pipefail: stop at the first error. $1 is the first argument, :-friend a default value. $(…) inserts a command's output." },
-          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Create the script and make it executable. Then simply: hello Pixie" },
+          { cmd: "nano ~/.local/bin/hello && chmod +x ~/.local/bin/hello", note: "Create the script and make it executable. Then simply: hello Velvet" },
         ] },
         { title: "Conditions and loops", blocks: [
           { cmd: "if [ -f ~/.bashrc ]; then\n  echo \"bashrc is there\"\nelse\n  echo \"no bashrc\"\nfi", noRun: true, note: "-f file exists, -d folder, -z empty string. The spaces inside [ ] are required!" },
@@ -772,7 +772,7 @@ window.CONTENT.en.levels = {
             "The <b>Arch Wiki</b> is written by users just like you. Found something wrong? Fix it — the best gift to the Linux world.",
             "Help newcomers in the chat: explaining to someone else is the best way to understand it yourself.",
           ] },
-          { say: "That's all. Three teachers, forty-two chapters. You've gone from “what's a terminal” to chroot and your own packages. Lapa is proud, Pixie approves, and from me — a lemon. You've earned it 🍋🎓" },
+          { say: "That's all. Three teachers, forty-two chapters. You've gone from “what's a terminal” to chroot and your own packages. Lapa is proud, Velvet approves, and from me — a lemon. You've earned it 🍋🎓" },
         ] },
       ],
       quiz: [

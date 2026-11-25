@@ -17,9 +17,7 @@
 
 **Что входит** (в том числе):
 - **Логотип FurrOS** — лапка и надпись (`furros-logo*.png`, `furros-lockup.png`, `plymouth-logo.png`, `plymouth-wordmark.png`).
-- **Пикси:**
-  - обои «Пикси», «Пикси: полоски», «Пикси: лежит»;
-  - Пикси в Школе Лапы.
+- **Пикси:** обои «Пикси: лежит».
 - **Данёк:**
   - обои «Данёк», «Данёк: лимон»;
   - Данёк в Школе Лапы.
@@ -32,7 +30,8 @@
 
 **Что не входит**
 - **Лапа:** её арт, а значит и обои и картинки с ней.
-- **Тарояда:** её арт и обои с ним.
+- **Велвет** (арт sxshely): обои и картинки с ней, Велвет в Школе Лапы и в FurrOS Downloader.
+- **Мими** (арт crispytyph): обои и картинки с ней.
 - **Анимированные (живые) обои:** все.
 - У этих работ права принадлежат их авторам, даже если фон или рамку для них сделали мы.
 - **Код** распространяется по [GPL-3.0](LICENSE).
@@ -54,9 +53,7 @@ On three conditions:
 
 **Covered** (among others):
 - **The FurrOS logo**, the paw and the wordmark (`furros-logo*.png`, `furros-lockup.png`, `plymouth-logo.png`, `plymouth-wordmark.png`).
-- **Pixie:**
-  - the "Pixie", "Pixie: stripes" and "Pixie: lying" wallpapers;
-  - Pixie in Lapa's School.
+- **Pixie:** the "Pixie: lying" wallpaper.
 - **Danyok:**
   - the "Danyok" and "Danyok: lemon" wallpapers;
   - Danyok in Lapa's School.
@@ -69,7 +66,8 @@ On three conditions:
 
 **Not covered**
 - **Lapa:** her art, and so the wallpapers and pictures with her.
-- **Taroyadda:** her art and the wallpapers with it.
+- **Velvet** (art by sxshely): the wallpapers and pictures with her, Velvet in Lapa's School and in FurrOS Downloader.
+- **Mimi** (art by crispytyph): the wallpapers and pictures with her.
 - **Animated (live) wallpapers:** all of them.
 - For these works the rights belong to their authors, even when we made the background or the frame.
 - **The code** is under [GPL-3.0](LICENSE).

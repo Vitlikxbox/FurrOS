@@ -2,7 +2,7 @@
 # --target x86_64-unknown-uefi) and put it next to this file; the Rust UEFI target isn't in Arch's toolchain.
 pkgname=furrboot
 pkgver=0.2.0
-pkgrel=6
+pkgrel=7
 pkgdesc="FurrBoot: the FurrOS boot menu (UEFI; Limine in FurrOS colours on BIOS) and the tools that keep it up to date"
 arch=(x86_64)
 url="https://furros.xyz"
