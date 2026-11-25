@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+import ssl
 import subprocess
 import sys
 import time
@@ -37,7 +38,36 @@ def human(n, ru=True):
         n /= 1024
 
 
+# CA bundles of the common Linux families: a Python bundled into an AppImage or a PyInstaller .exe looks for
+# certificates where *its* build machine kept them, finds none and every HTTPS request fails (issue #5)
+CA_FILES = ("/etc/ssl/certs/ca-certificates.crt", "/etc/pki/tls/certs/ca-bundle.crt", "/etc/ssl/ca-bundle.pem",
+            "/etc/ssl/cert.pem", "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem")
+_ctx = None  # None = the default context; after a certificate failure, the fallback one
+
+
+def _fallback_context():
+    """Certificates from certifi (bundled into the builds when it is installed) or from the system's own bundle."""
+    try:
+        import certifi  # noqa: PLC0415
+        return ssl.create_default_context(cafile=certifi.where())
+    except (ImportError, OSError, ssl.SSLError):
+        pass
+    env = os.environ.get("SSL_CERT_FILE")
+    for path in ((env,) if env else ()) + CA_FILES:
+        if os.path.isfile(path):
+            try:
+                return ssl.create_default_context(cafile=path)
+            except (OSError, ssl.SSLError):
+                continue
+    return None
+
+
+def _is_cert_error(e):
+    return isinstance(getattr(e, "reason", e), ssl.SSLCertVerificationError)
+
+
 def _request(url, token=None, accept=None, start=0, timeout=60):
+    global _ctx
     headers = {"User-Agent": UA}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -45,7 +75,25 @@ def _request(url, token=None, accept=None, start=0, timeout=60):
         headers["Accept"] = accept
     if start:
         headers["Range"] = f"bytes={start}-"
-    return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=timeout)
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        return urllib.request.urlopen(req, timeout=timeout, context=_ctx)
+    except urllib.error.URLError as e:
+        if _ctx is not None or not _is_cert_error(e):
+            raise
+        ctx = _fallback_context()
+        if ctx is None:
+            raise
+        _ctx = ctx
+        return urllib.request.urlopen(req, timeout=timeout, context=_ctx)
+
+
+def net_reason(e):
+    """A short reason for "can't reach GitHub", so a report says what really failed (issue #5)."""
+    r = getattr(e, "reason", e)
+    if _is_cert_error(e):
+        return f"SSL: {getattr(r, 'verify_message', '') or r}"
+    return str(r) or type(r).__name__
 
 
 class Build:
@@ -104,7 +152,8 @@ def find_build(repo=REPO, tag=None, token=None):
                           "Build not found. It may not be published yet") from e
         raise DLError(f"GitHub ответил ошибкой {e.code}", f"GitHub answered with error {e.code}") from e
     except (urllib.error.URLError, OSError) as e:
-        raise DLError("Нет связи с GitHub. Проверь интернет", "Can't reach GitHub. Check the internet") from e
+        why = net_reason(e)
+        raise DLError(f"Нет связи с GitHub. Проверь интернет ({why})", f"Can't reach GitHub. Check the internet ({why})") from e
     if tag:
         return Build(data, token)
     # the list is sorted by the tag's date, not by publication: releases whose tags point at the same commit come

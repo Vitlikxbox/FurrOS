@@ -186,15 +186,71 @@ for f in $(grep -rl "archisobasedir=" "$PROFILE"/efiboot "$PROFILE"/grub "$PROFI
     sed -i '/archisobasedir=/ { /quiet splash/! s/$/ quiet splash/ }' "$f"
 done
 cp "$SRC/profile/airootfs/usr/share/furros/splash.png" "$PROFILE/syslinux/splash.png" 2>/dev/null || true
-# The live system always boots with safe graphics (nomodeset): no black screen on a new graphics card
-# (often NVIDIA), at the cost of firmware-framebuffer graphics while installing. Every live entry gets it
-# (UEFI systemd-boot, BIOS syslinux, the GRUB menus); the installed system keeps normal graphics (the
-# installer writes its own kernel command line). English titles: firmware fonts often have no Cyrillic.
-for f in $(grep -rl "archisobasedir=" "$PROFILE"/efiboot "$PROFILE"/grub "$PROFILE"/syslinux 2>/dev/null); do
-    sed -i '/archisobasedir=/ { / nomodeset/! s/$/ nomodeset/ }' "$f"
-done
-for f in $(grep -l "archisobasedir=" "$PROFILE"/efiboot/loader/entries/*.conf 2>/dev/null); do sed -i -E 's/^(title .*)$/\1 - safe graphics/' "$f"; done
-sed -i -E 's/^(MENU LABEL .*)$/\1 - safe graphics/' "$PROFILE"/syslinux/archiso_sys-linux.cfg 2>/dev/null || true
+# Normal graphics by default, plus a separate "safe graphics" (nomodeset) entry in every live menu (UEFI
+# systemd-boot/FurrBoot, BIOS syslinux, the GRUB menus). nomodeset on every entry gave a black screen on old
+# built-in graphics booted from BIOS (issue #10: Core 2 Duo laptop), while a new NVIDIA card may need it.
+# English titles: firmware fonts often have no Cyrillic. The installed system writes its own command line.
+python3 - "$PROFILE" <<'EOF'
+import re, sys
+from pathlib import Path
+prof = Path(sys.argv[1])
+SUFFIX = " - safe graphics"
+
+def nomodeset(line):
+    return line if " nomodeset" in line else line.rstrip("\n") + " nomodeset\n"
+
+# systemd-boot / FurrBoot: a copy of the main entry (01-archiso-linux.conf stays the default in loader.conf)
+main = prof / "efiboot/loader/entries/01-archiso-linux.conf"
+if main.exists():
+    out = []
+    for line in main.read_text().splitlines(keepends=True):
+        if line.startswith("title"):
+            line = line.rstrip("\n") + SUFFIX + "\n"
+        elif line.startswith("sort-key"):
+            line = "sort-key 03\n"  # after the main and the speech entries
+        elif line.startswith("options") and "archisobasedir=" in line:
+            line = nomodeset(line)
+        out.append(line)
+    (prof / "efiboot/loader/entries/03-archiso-safe-graphics.conf").write_text("".join(out))
+
+# syslinux: the first LABEL block that boots the live system (not the speech one), copied right after itself
+sl = prof / "syslinux/archiso_sys-linux.cfg"
+if sl.exists():
+    text = sl.read_text()
+    blocks = re.split(r"(?m)^(?=LABEL )", text)
+    for i, b in enumerate(blocks):
+        if b.startswith("LABEL ") and "archisobasedir=" in b and "speech" not in b.lower():
+            # the comment at the end of the block ("# Accessibility boot option") heads the next block: keep it there
+            m = re.search(r"(?:\n[ \t]*(?:#[^\n]*)?)+\Z", b)
+            body, tail = (b[:m.start()], b[m.start():]) if m else (b.rstrip("\n"), "\n")
+            safe = re.sub(r"(?m)^LABEL (\S+)", r"LABEL \1safe", body, count=1)
+            safe = re.sub(r"(?m)^(MENU LABEL .*)$", r"\1" + SUFFIX, safe, count=1)
+            safe = re.sub(r"(?m)^(\s*APPEND .*archisobasedir=.*)$", lambda m: nomodeset(m.group(1)).rstrip("\n"), safe)
+            blocks[i:i + 1] = [body + "\n\n", safe + tail]
+            break
+    sl.write_text("".join(blocks))
+
+# GRUB (grub.cfg for UEFI without FurrBoot, loopback.cfg for Ventoy): copy the first live menuentry
+for cfg in (prof / "grub/grub.cfg", prof / "grub/loopback.cfg"):
+    if not cfg.exists():
+        continue
+    lines = cfg.read_text().splitlines(keepends=True)
+    start = next((i for i, l in enumerate(lines) if l.lstrip().startswith("menuentry ")
+                  and "speech" not in l.lower() and "accessib" not in l.lower()), None)
+    if start is None:
+        continue
+    end = next((j for j in range(start + 1, len(lines)) if lines[j].strip() == "}"), None)
+    block = "".join(lines[start:end + 1]) if end is not None else ""
+    if "archisobasedir=" not in block:
+        continue
+    head = re.sub(r'^(\s*menuentry\s+)(["\'])(.*?)\2', lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{SUFFIX}{m.group(2)}",
+                  lines[start], count=1)
+    head = re.sub(r"--id\s+'?([\w.-]+)'?", r"--id '\1-safe-graphics'", head)
+    body = [nomodeset(l) if "archisobasedir=" in l else l for l in lines[start + 1:end + 1]]
+    lines[end + 1:end + 1] = ["\n", head, *body]
+    cfg.write_text("".join(lines))
+EOF
+grep -q nomodeset "$PROFILE"/efiboot/loader/entries/03-archiso-safe-graphics.conf || { echo "safe graphics entry not added" >&2; exit 1; }
 
 # FurrBoot instead of systemd-boot for UEFI (bootloader/furros/furrboot.efi, or FURRBOOT_EFI=/path). It reads the
 # same Boot Loader Specification entries; the extra furrboot-* keys only give them names and pictures.
@@ -207,7 +263,10 @@ if [[ -n ${FURRBOOT_EFI:-} ]]; then
     E=$PROFILE/efiboot/loader/entries
     sed -i -E 's/^title .*/title    FurrOS Live/' "$E/01-archiso-linux.conf"
     printf '%s\n' "furrboot-kind main" "furrboot-subtitle попробовать и установить" \
-        "furrboot-when с безопасной графикой (nomodeset)" >> "$E/01-archiso-linux.conf"
+        "furrboot-when обычная графика" >> "$E/01-archiso-linux.conf"
+    sed -i -E 's/^title .*/title    FurrOS Live - safe graphics/' "$E/03-archiso-safe-graphics.conf"
+    printf '%s\n' "furrboot-kind safe" "furrboot-when чёрный экран? запуск без драйвера видеокарты (nomodeset)" \
+        >> "$E/03-archiso-safe-graphics.conf"
     if [[ -f $E/02-archiso-speech-linux.conf ]]; then
         sed -i -E 's/^title .*/title    FurrOS Live с озвучкой/' "$E/02-archiso-speech-linux.conf"
         printf '%s\n' "furrboot-kind kernel" "furrboot-when озвучка экрана для незрячих" >> "$E/02-archiso-speech-linux.conf"
