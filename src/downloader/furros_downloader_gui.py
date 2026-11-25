@@ -44,7 +44,14 @@ def T(ru, en):
         return ru
     if LANG == "en":
         return en
-    return I18N.TR.get(en, (en, en))[0 if LANG == "pl" else 1]
+    i = 0 if LANG == "pl" else 1
+    if en in I18N.TR:
+        return I18N.TR[en][i]
+    # a message with a detail at the end, "... (reason)": translate the message, keep the detail as it is
+    base, sep, detail = en.rpartition(" (")
+    if sep and en.endswith(")") and base in I18N.TR:
+        return f"{I18N.TR[base][i]} ({detail}"
+    return en
 
 
 def F(key, *args):

@@ -534,7 +534,10 @@ def install_packages(plan):
             seen(10)
             before = cached()
             try:
-                run(["pacstrap", "-K", str(MNT)] + pkgs, stream=on_line, env={"LC_ALL": "C"})
+                # stdbuf -oL: into a pipe pacman's stdout is block-buffered, and its non-tty " name downloading..."
+                # lines are never flushed (callback.c: dload_init_event), so the log and the progress bar froze at
+                # 10% for the whole download (issue #13). Line buffering hands every line over as it is printed
+                run(["stdbuf", "-oL", "pacstrap", "-K", str(MNT)] + pkgs, stream=on_line, env={"LC_ALL": "C"})
                 break
             except InstallError:
                 strikes += 0 if cached() > before else 1
@@ -758,6 +761,46 @@ def nvidia_legacy_driver(plan):
                  and subprocess.run(["arch-chroot", str(MNT), "pacman", "-Q", p], capture_output=True).returncode == 0]
     if installed:
         run(["pacman", "-Rns", "--noconfirm", *installed], chroot=True, check=False)
+
+
+def kernel_dir(pkgbase):
+    """/usr/lib/modules/<version> of an installed kernel package (its pkgbase file names the package)."""
+    for d in MNT.glob("usr/lib/modules/*"):
+        try:
+            if (d / "pkgbase").read_text().strip() == pkgbase:
+                return d
+        except OSError:
+            continue
+    return None
+
+
+def nvidia_furros_kernel(plan):
+    """The proprietary NVIDIA module is built by dkms for the FurrOS kernel too. When that build fails, pacman still
+    succeeds (hook failures don't change its exit code), and then mkinitcpio stops the install (MODULES=(nvidia ...)
+    not found) or the FurrOS kernel boots with no graphics driver at all: nouveau is blacklisted by nvidia-utils,
+    the picture comes from the firmware framebuffer, stretched and without acceleration (issue #8). Try the build
+    once more; if it still fails, the FurrOS kernel goes and the stock one, which has the driver, is the default."""
+    gpu = plan.get("_gpu") or {}
+    if DRY or not plan.get("_furros_kernel") or not gpu.get("early_kms"):
+        return
+    kdir = kernel_dir("linux-furros")
+    if kdir is None:
+        return
+
+    def has_module():
+        return any(kdir.glob("**/nvidia.ko*"))
+
+    if not has_module():
+        out(f"! NVIDIA: no module for linux-furros ({kdir.name}), building it again")
+        run(["dkms", "autoinstall", "-k", kdir.name], chroot=True, check=False)
+    if has_module():
+        return
+    out("! NVIDIA: the module could not be built for linux-furros: removing that kernel, the standard one stays")
+    # only the installed ones: pacman -R with a name that isn't installed removes nothing at all
+    run("pacman -Rns --noconfirm $(pacman -Qq linux-furros linux-furros-headers 2>/dev/null)", chroot=True, check=False)
+    plan["_furros_kernel"] = False
+    if plan.get("kernel") == "linux-furros":
+        run(["sed", "-i", "s/^KERNEL=.*/KERNEL=linux/", "/etc/furros/settings.conf"], chroot=True, check=False)
 
 
 def configure(plan):
@@ -1294,7 +1337,8 @@ def finish(plan):
     progress(100, "Готово! Гав!")
 
 
-STEPS = [prepare, partition, install_packages, copy_furros_files, furros_kernel, nvidia_legacy_driver, configure, users, desktop_setup, extras,
+STEPS = [prepare, partition, install_packages, copy_furros_files, furros_kernel, nvidia_legacy_driver,
+         nvidia_furros_kernel, configure, users, desktop_setup, extras,
          bootloader, finish]
 
 

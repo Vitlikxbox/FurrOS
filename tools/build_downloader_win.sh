@@ -17,6 +17,8 @@ fi
 "$PY" -c "from PIL import Image; Image.open('$W/assets/paw.png').convert('RGBA').save('$W/paw.ico', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])"
 cd "$W"
 HERE=$(pwd -W)  # PyInstaller resolves paths against the .spec folder: give it absolute Windows paths
-../../$PY -m PyInstaller --noconfirm --onefile --windowed --name "$NAME" --icon "$HERE/paw.ico" \
+# certifi: the .exe carries a CA bundle of its own; the core falls back to it when the system store fails (issue #5)
+../../$PY -m pip install -q certifi || echo "! certifi not installed: the .exe has no CA bundle of its own" >&2
+../../$PY -m PyInstaller --noconfirm --onefile --windowed --hidden-import certifi --name "$NAME" --icon "$HERE/paw.ico" \
     --add-data "$HERE/assets;assets" --distpath ../out --workpath work --specpath work furros_downloader_gui.py
 ls -la "../out/$NAME.exe"
