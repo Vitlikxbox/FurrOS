@@ -140,7 +140,7 @@ The license **does not cover**:
 FurrOS is a non-commercial fan project. **Lapa** (a dalmatian) and the other characters, as well as the art
 in the desktop and wallpaper screenshots, belong to their authors and are shown for illustration only.
 
-🎨 Artists whose art is used in FurrOS: **lapalilpup**, **sxshely**, **sashley**, **crispytyph**, **dentola69**, **cobac228_16982**. Thank you! 🐾
+🎨 Artists whose art is used in FurrOS: **lapalilpup**, **sxshely**, **crispytyph**, **dentola69**, **cobac228_16982**. Thank you! 🐾
 
 ---
 

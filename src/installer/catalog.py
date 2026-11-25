@@ -255,7 +255,7 @@ ANIMATED = [
     ("anim-you-got-curves", "You Got Curves", False),
     ("anim-do-not-push", "Do Not Push", False),
     ("anim-if-i-take-you-home", "If I Take You Home", False),
-    # 13.11.2026: Typh, sashley, Oniixide, RIGOR MORT1S clips (art/yt-new -> tools/make_anim_new.sh)
+    # 13.11.2026: Typh, sxshely, Oniixide, RIGOR MORT1S clips (art/yt-new -> tools/make_anim_new.sh)
     ("anim-pretty-cvnt", "Pretty Cvnt", True),
     ("anim-paper-planes", "Paper Planes", True),
     ("anim-kismet", "Kismet", False),
