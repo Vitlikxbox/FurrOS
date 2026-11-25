@@ -24,7 +24,7 @@
 
 ## ⚠️ Estado
 
-**Ya salió la beta de FurrOS 1.0** — [descárgala en Releases](https://github.com/Vitlikxbox/FurrOS/releases/tag/v1.0-beta.2). Los testers ya la probaron en ordenadores reales, pero es una beta: haz copia de tus archivos importantes antes de instalar. Lo más fácil es **FurrOS Downloader**: descarga y comprueba la imagen, y en Linux también graba el USB (en Windows usa Rufus o Ventoy).
+**Ya salió la beta de FurrOS 1.0** — [descárgala en Releases](https://github.com/Vitlikxbox/FurrOS/releases/tag/v1.0-beta.3). Los testers ya la probaron en ordenadores reales, pero es una beta: haz copia de tus archivos importantes antes de instalar. Lo más fácil es **FurrOS Downloader**: descarga y comprueba la imagen, y en Linux también graba el USB (en Windows usa Rufus o Ventoy).
 
 📖 **[Guía de instalación](https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md#-how-to-install-furros-10-beta)** (en inglés y ruso) — paso a paso, incluida la preparación de Windows.
 
