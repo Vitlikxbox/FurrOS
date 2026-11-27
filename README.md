@@ -110,7 +110,6 @@
 ### Рабочие столы и обои
 <p>
 <img src="docs/wp-kde-anim.webp" width="32%" />
-<img src="docs/hyprland-pl.webp" width="32%" />
 <img src="docs/wp-static.webp" width="32%" />
 </p>
 
