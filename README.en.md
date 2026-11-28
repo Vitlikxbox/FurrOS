@@ -36,7 +36,7 @@ Stay in the loop:
 - 👀 click **Watch → Custom → Releases** — GitHub will notify you on release day;
 - ▶️ subscribe to [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — devlogs and system showcases;
 - ✈️ follow the [Telegram channel](https://t.me/FurrOS_Linux) — news and the release announcement right in your feed;
-- 💬 join the [Discord](https://discord.gg/ZA3GuBYKwG) — news first, help, and chats in English and Russian.
+- 💬 join the [Discord](https://discord.gg/ZA3GuBYKwG) — news first, help, and chats in English and Russian;
 - 💖 subscribe on [Boosty](https://boosty.to/furroslinux) — a private Discord channel and your name in the system;
 - 💜 a one-time donation on [DALink](https://dalink.to/furros) — optional, it goes to the server, domain and artists.
 
@@ -137,7 +137,7 @@ The license **does not cover**:
 
 ## Art and rights
 
-FurrOS is a non-commercial fan project. **Lapa** (a dalmatian) and the other characters, as well as the art
+FurrOS is a non-commercial fan project. **Lapa** (a Dalmatian) and the other characters, as well as the art
 in the desktop and wallpaper screenshots, belong to their authors and are shown for illustration only.
 
 🎨 Artists whose art is used in FurrOS: **lapalilpup**, **sxshely**, **crispytyph**, **dentola69**, **cobac228_16982**. Thank you! 🐾
