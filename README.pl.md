@@ -28,7 +28,7 @@
 
 📖 **[Instrukcja instalacji](https://github.com/Vitlikxbox/FurrOS/blob/main/INSTALL.md#-how-to-install-furros-10-beta)** (po angielsku i rosyjsku) — krok po kroku, z przygotowaniem Windows.
 
-Znalazłeś błąd albo potrzebujesz pomocy? Wpadnij na [Discord](https://discord.gg/ZA3GuBYKwG): odpowiada tam zespół i Łapa.
+Znalazłeś błąd albo potrzebujesz pomocy? Wpadnij na [Discorda](https://discord.gg/ZA3GuBYKwG): odpowiada tam zespół i Łapa.
 
 Bądź na bieżąco:
 
@@ -36,8 +36,8 @@ Bądź na bieżąco:
 - 👀 kliknij **Watch → Custom → Releases** — GitHub powiadomi Cię w dniu wydania;
 - ▶️ subskrybuj [YouTube @FurrOSLinux](https://www.youtube.com/@FurrOSLinux) — devlogi i pokazy systemu;
 - ✈️ obserwuj [kanał na Telegramie](https://t.me/FurrOS_Linux) — nowości i zapowiedź premiery prosto w Twoim feedzie;
-- 💬 dołącz do [Discorda](https://discord.gg/ZA3GuBYKwG) — nowości jako pierwszy, pomoc i czaty po angielsku i rosyjsku.
-- 💖 subskrypcja na [Boosty](https://boosty.to/furroslinux) — prywatny kanał na Discordzie i twoje imię w systemie;
+- 💬 dołącz do [Discorda](https://discord.gg/ZA3GuBYKwG) — nowości jako pierwszy, pomoc i czaty po angielsku i rosyjsku;
+- 💖 subskrypcja na [Boosty](https://boosty.to/furroslinux) — prywatny kanał na Discordzie i Twoje imię w systemie;
 - 💜 jednorazowa wpłata na [DALink](https://dalink.to/furros) — dobrowolna, idzie na serwer, domenę i artystów.
 
 ---
